@@ -1,0 +1,14 @@
+This project uses many other open source projects, and their licenses are described below.
+
+Mono class library source files for System.Configuration (MIT/X11) 
+(c) Copyright 2008 Novell 
+(c) Copyright 2012 Xamarin Inc
+https://github.com/mono/mono
+
+SslCertBinding.Net (MIT/X11)
+(c) Copyright 2015 Serghei Gorodetki
+https://github.com/segor/SslCertBinding.Net
+
+AsyncHelper (Custom License)
+(c) Copyright 2015 Chris Gaskell
+https://bitbucket.org/snippets/detangleddigital/ReKG/c-asynchelper
