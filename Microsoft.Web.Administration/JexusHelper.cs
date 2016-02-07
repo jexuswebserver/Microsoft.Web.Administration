@@ -45,7 +45,7 @@ namespace Microsoft.Web.Administration
                     return new Version(succeeded);
                 }
 
-                return new Version();
+                return null;
             }
         }
 
