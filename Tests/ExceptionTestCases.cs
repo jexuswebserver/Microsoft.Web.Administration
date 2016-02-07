@@ -417,11 +417,38 @@ namespace Tests
                 {
                     var root = config.RootSectionGroup;
                 });
-#if IIS
             Assert.Equal(string.Format("Filename: \\\\?\\{0}\r\nError: Unrecognized configuration path 'MACHINE/WEBROOT/APPHOST/WebSite1'\r\n\r\n", Current), exception.Message);
-#else
-            Assert.Equal(string.Format("Filename: \\\\?\\{0}\r\nError: Unrecognized configuration path 'MACHINE/WEBROOT/APPHOST/WebSite1'\r\n\r\n", Current), exception.Message);
-#endif
+        }
+
+        [Fact]
+        public void TestIisExpressRootApplicationOutOfOrder()
+        {
+            var directoryName = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            Environment.SetEnvironmentVariable("JEXUS_TEST_HOME", directoryName);
+
+            if (directoryName == null)
+            {
+                return;
+            }
+
+            string Current = Path.Combine(directoryName, @"applicationHost.config");
+            string Original = Path.Combine(directoryName, @"original2_root_app_out.config");
+            TestHelper.CopySiteConfig(directoryName, "original.config");
+            File.Copy(Original, Current, true);
+            TestHelper.FixPhysicalPathMono(Current);
+
+            var server = new ServerManager(Current);
+            var site = server.Sites[0];
+            var config = site.GetWebConfiguration();
+            var root = config.RootSectionGroup;
+            Assert.NotNull(root);
+
+            // enable Windows authentication
+            var windowsSection = config.GetSection("system.webServer/security/authentication/windowsAuthentication");
+            Assert.Equal(OverrideMode.Inherit, windowsSection.OverrideMode);
+            Assert.Equal(OverrideMode.Deny, windowsSection.OverrideModeEffective);
+            Assert.Equal(true, windowsSection.IsLocked);
+            Assert.Equal(false, windowsSection.IsLocallyStored);
         }
     }
 }
