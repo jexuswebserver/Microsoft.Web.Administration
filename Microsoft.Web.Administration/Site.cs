@@ -125,6 +125,16 @@ namespace Microsoft.Web.Administration
 
         public Configuration GetWebConfiguration()
         {
+            if (Applications.Count == 0)
+            {
+                return new Configuration(new FileContext(Server, null, null, Name, true, true, true));
+            }
+
+            if (Applications[0].Path != Application.RootPath)
+            {
+                return new Configuration(new FileContext(Server, null, null, Name, true, true, true));
+            }
+            
             return Applications[0].GetWebConfiguration();
         }
 

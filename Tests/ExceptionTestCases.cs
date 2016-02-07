@@ -12,7 +12,8 @@ namespace Tests
 
     using Microsoft.Web.Administration;
     using Xunit;
-    internal class ExceptionTestCases
+
+    public class ExceptionTestCases
     {
         [Fact]
         public void TestProviders()
@@ -353,7 +354,6 @@ namespace Tests
 #endif
         }
 
-
         [Fact]
         public void TestIisExpressDuplicateSection()
         {
@@ -390,6 +390,38 @@ namespace Tests
             TestHelper.FixPhysicalPathMono(Expected);
             XmlAssert.Equal(Expected, Current);
             TestHelper.AssertSiteConfig(directoryName, Expected);
+        }
+
+        [Fact]
+        public void TestIisExpressNoRootApplication()
+        {
+            var directoryName = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            Environment.SetEnvironmentVariable("JEXUS_TEST_HOME", directoryName);
+
+            if (directoryName == null)
+            {
+                return;
+            }
+
+            string Current = Path.Combine(directoryName, @"applicationHost.config");
+            string Original = Path.Combine(directoryName, @"original2_no_root_app.config");
+            TestHelper.CopySiteConfig(directoryName, "original.config");
+            File.Copy(Original, Current, true);
+            TestHelper.FixPhysicalPathMono(Current);
+
+            var server = new ServerManager(Current);
+            var site = server.Sites[0];
+            var config = site.GetWebConfiguration();
+            var exception = Assert.Throws<FileNotFoundException>(
+                () =>
+                {
+                    var root = config.RootSectionGroup;
+                });
+#if IIS
+            Assert.Equal(string.Format("Filename: \\\\?\\{0}\r\nError: Unrecognized configuration path 'MACHINE/WEBROOT/APPHOST/WebSite1'\r\n\r\n", Current), exception.Message);
+#else
+            Assert.Equal(string.Format("Filename: \\\\?\\{0}\r\nError: Unrecognized configuration path 'MACHINE/WEBROOT/APPHOST/WebSite1'\r\n\r\n", Current), exception.Message);
+#endif
         }
     }
 }

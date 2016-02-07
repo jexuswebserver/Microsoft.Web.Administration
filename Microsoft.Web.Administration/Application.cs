@@ -106,13 +106,18 @@ namespace Microsoft.Web.Administration
                     break;
                 }
 
+                if (start == parentPath)
+                {
+                    break;
+                }
+
                 start = parentPath;
             }
 
             var fullPath = Site.Name + Path;
             var appFile = System.IO.Path.Combine(VirtualDirectories[0].PhysicalPath, "web.config");
             // TODO: test ACL to set ReadOnly.
-            return (_configuration = new Configuration(new FileContext(Server, appFile, parent.FileContext, fullPath, false, false, this.Server.ReadOnly)));
+            return (_configuration = new Configuration(new FileContext(Server, appFile, parent?.FileContext, fullPath, false, false, this.Server.ReadOnly)));
         }
 
         public override string ToString()

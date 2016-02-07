@@ -52,6 +52,16 @@ namespace Microsoft.Web.Administration
             LoadSchemas();
             _rootSectionGroup = new SectionGroup(this);
             this.CloneParentSectionGroups(this.Parent);
+            if (FileName == null)
+            {
+                // TODO: merge with the other exception later.
+                throw new FileNotFoundException(
+                    string.Format(
+                        "Filename: \\\\?\\{0}\r\nError: Unrecognized configuration path 'MACHINE/WEBROOT/APPHOST/{1}'\r\n\r\n",
+                        _server.FileName,
+                        Location));
+            }
+
             var file = this.FileName.ExpandIisExpressEnvironmentVariables();
 
             if (!File.Exists(file))
