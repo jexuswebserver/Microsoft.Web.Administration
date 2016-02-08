@@ -408,7 +408,7 @@ namespace Microsoft.Web.Administration
             if (site.Server.Credentials == null)
             {
                 appNames = Directory.GetFiles(siteFolder);
-                appNames = appNames.Where(name => name.StartsWith(file + "_"));
+                appNames = appNames.Where(name => name.StartsWith(file + "_", StringComparison.Ordinal));
             }
             else
             {
@@ -619,8 +619,8 @@ namespace Microsoft.Web.Administration
 
                     var parts = rule.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     ConfigurationElement matchElement = ruleElement.GetChildElement("match");
-                    matchElement["ignoreCase"] = parts[0].EndsWith("/i");
-                    matchElement["url"] = parts[0].EndsWith("/i") ? parts[0].Substring(0, parts[0].Length - 2) : parts[0];
+                    matchElement["ignoreCase"] = parts[0].EndsWith("/i", StringComparison.Ordinal);
+                    matchElement["url"] = parts[0].EndsWith("/i", StringComparison.Ordinal) ? parts[0].Substring(0, parts[0].Length - 2) : parts[0];
 
                     ConfigurationElement actionElement = ruleElement.GetChildElement("action");
                     actionElement["type"] = 2;

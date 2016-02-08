@@ -215,7 +215,7 @@ namespace Microsoft.Web.Administration
             {
                 var items = Process.GetProcessesByName("iisexpress");
                 var found = items.Where(item =>
-                    item.GetCommandLine().EndsWith(string.Format("/config:\"{0}\" /siteid:{1} /systray:false", this.FileContext.FileName, Id)));
+                    item.GetCommandLine().EndsWith(string.Format("/config:\"{0}\" /siteid:{1} /systray:false", this.FileContext.FileName, Id), StringComparison.Ordinal));
                 foreach (var item in found)
                 {
                     item.Kill();

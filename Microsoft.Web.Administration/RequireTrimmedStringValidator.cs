@@ -13,7 +13,7 @@ namespace Microsoft.Web.Administration
         public override void Validate(object value)
         {
             var data = (string)value;
-            if (data.StartsWith(" ") || data.EndsWith(" "))
+            if (data.StartsWith(" ", System.StringComparison.Ordinal) || data.EndsWith(" ", System.StringComparison.Ordinal))
             {
                 throw new COMException("TODO");
             }

@@ -47,7 +47,7 @@ namespace Microsoft.Web.Administration
         {
             return (from name in _addNames
                     where elementName == name
-                    select AddSchemas.First(item => item.Path.EndsWith(name))).FirstOrDefault();
+                    select AddSchemas.First(item => item.Path.EndsWith(name, System.StringComparison.Ordinal))).FirstOrDefault();
         }
 
         public ConfigurationElementSchema GetClearElementSchema()

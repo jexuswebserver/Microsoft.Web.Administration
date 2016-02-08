@@ -177,11 +177,11 @@ namespace Microsoft.Web.Administration
                 {
                     return data.Length == 0 ? data : provider.Decrypt(data);
                 }
-                catch (CryptographicException ex)
+                catch (CryptographicException)
                 {
                     return "**********************";
                 }
-                catch (DllNotFoundException ex)
+                catch (DllNotFoundException)
                 {
                     return "";
                 }

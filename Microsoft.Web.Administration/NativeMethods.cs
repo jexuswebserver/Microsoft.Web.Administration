@@ -285,8 +285,8 @@ namespace Microsoft.Web.Administration
 
         public static void BindCertificate(IPEndPoint ipPort, byte[] hash, string storeName, Guid appId)
         {
-            if (ipPort == null) throw new ArgumentNullException("ipPort");
-            if (hash == null) throw new ArgumentNullException("hash");
+            if (ipPort == null) throw new ArgumentNullException(nameof(ipPort));
+            if (hash == null) throw new ArgumentNullException(nameof(hash));
 
             CallHttpApi(
                 delegate
@@ -610,8 +610,8 @@ namespace Microsoft.Web.Administration
 
         public static void BindSni(Tuple<string, int> binding, byte[] hash, string storeName, Guid appId)
         {
-            if (binding == null) throw new ArgumentNullException("binding");
-            if (hash == null) throw new ArgumentNullException("hash");
+            if (binding == null) throw new ArgumentNullException(nameof(binding));
+            if (hash == null) throw new ArgumentNullException(nameof(hash));
 
             if (Environment.OSVersion.Version < new Version(6, 2))
             {
@@ -923,7 +923,7 @@ namespace Microsoft.Web.Administration
                     ipEndPointAny = new IPEndPoint(IPAddress.IPv6Any, 0);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("pSockaddrStructure", "Unknown address family");
+                    throw new ArgumentOutOfRangeException(nameof(pSockaddrStructure), "Unknown address family");
             }
 
 
@@ -971,7 +971,7 @@ namespace Microsoft.Web.Administration
                     ipEndPointAny = new IPEndPoint(IPAddress.Any, 0);
                     return (IPEndPoint)ipEndPointAny.Create(socketAddress);
                 default:
-                    throw new ArgumentOutOfRangeException("sockAddrStorageStructure", "Unknown address family");
+                    throw new ArgumentOutOfRangeException(nameof(sockAddrStorageStructure), "Unknown address family");
             }
         }
 
