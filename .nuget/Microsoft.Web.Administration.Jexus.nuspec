@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+  <metadata>
+    <version>11.0.0-beta</version>
+    <authors>Lex Li</authors>
+    <owners>Lex Li</owners>
+    <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
+    <projectUrl>http://jexus.lextudio.com</projectUrl>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="System.Core" targetFramework="4.5" />
+      <frameworkAssembly assemblyName="System" targetFramework="4.5" />
+    </frameworkAssemblies>
+    <dependencies>
+      <dependency id="Microsoft.AspNet.WebApi.Client" version="5.2.3" />
+    </dependencies>
+    <id>Microsoft.Web.Administration.Jexus</id>
+    <title>Microsoft.Web.Administration for Jexus Manager</title>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Microsoft.Web.Administration clone for Jexus Manager. Works for IIS, IIS Express, and Jexus.</description>
+    <summary>Microsoft.Web.Administration clone for Jexus Manager. Works for IIS, IIS Express, and Jexus.</summary>
+    <releaseNotes>
+Feb 9, 2016: 11.0 Beta 1
+Initial public release as open source.
+</releaseNotes>
+    <copyright>(C) 2014-2016 Lex Li</copyright>
+    <language>en-US</language>
+    <tags>iis</tags>
+  </metadata>
+  <files>
+    <file src="..\Microsoft.Web.Administration\bin\Release\Microsoft.Web.Administration.dll" target="lib\net45\Microsoft.Web.Administration.dll" />
+  </files>
+</package>
