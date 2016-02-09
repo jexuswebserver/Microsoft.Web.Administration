@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Microsoft.Web.Administration
 {
@@ -67,27 +68,45 @@ namespace Microsoft.Web.Administration
                 return _configuration;
             }
 
+            string root = null;
+            foreach (VirtualDirectory child in VirtualDirectories)
+            {
+                if (child.Path == VirtualDirectory.RootPath)
+                {
+                    root = child.PhysicalPath;
+                    break;
+                }
+            }
+
             if (this.IsRoot())
             {
                 var server = Server.GetConfigurationCache().FileContext;
-                var physicalPath = this.Server.Mode == WorkingMode.Jexus
+                if (root == null)
+                {
+                    var site = new Configuration(new FileContext(Server, null, server, Site.Name, false, false, this.Server.ReadOnly, (Entity as IXmlLineInfo).LineNumber));
+                    return (_configuration = site);
+                }
+                else
+                {
+                    var physicalPath = this.Server.Mode == WorkingMode.Jexus
                                        ? System.IO.Path.Combine(
                                            this.Server.CacheFolder,
-                                           this.Site.Applications[0].VirtualDirectories[0].PhysicalPath.Replace(
+                                           root.Replace(
                                                '/',
                                                '_'))
-                                       : this.Site.Applications[0].VirtualDirectories[0].PhysicalPath;
-                var siteFile = System.IO.Path.Combine(physicalPath,
-                    "web.config").ExpandIisExpressEnvironmentVariables();
+                                       : root;
+                    var siteFile = System.IO.Path.Combine(physicalPath,
+                        "web.config").ExpandIisExpressEnvironmentVariables();
 
-                if (this.Server.Mode == WorkingMode.Jexus)
-                {
-                    System.IO.File.Delete(siteFile);
+                    if (this.Server.Mode == WorkingMode.Jexus)
+                    {
+                        System.IO.File.Delete(siteFile);
+                    }
+
+                    // TODO: test ACL to set ReadOnly.
+                    var site = new Configuration(new FileContext(Server, siteFile, server, Site.Name, false, false, this.Server.ReadOnly));
+                    return (_configuration = site);
                 }
-
-                // TODO: test ACL to set ReadOnly.
-                var site = new Configuration(new FileContext(Server, siteFile, server, Site.Name, false, false, this.Server.ReadOnly));
-                return (_configuration = site);
             }
 
             string start = null;
@@ -114,8 +133,14 @@ namespace Microsoft.Web.Administration
                 start = parentPath;
             }
 
+            if (root == null)
+            {
+                var app = new Configuration(new FileContext(Server, null, parent?.FileContext, Site.Name, false, false, this.Server.ReadOnly, (Entity as IXmlLineInfo).LineNumber));
+                return (_configuration = app);
+            }
+
             var fullPath = Site.Name + Path;
-            var appFile = System.IO.Path.Combine(VirtualDirectories[0].PhysicalPath, "web.config");
+            var appFile = System.IO.Path.Combine(root, "web.config");
             // TODO: test ACL to set ReadOnly.
             return (_configuration = new Configuration(new FileContext(Server, appFile, parent?.FileContext, fullPath, false, false, this.Server.ReadOnly)));
         }

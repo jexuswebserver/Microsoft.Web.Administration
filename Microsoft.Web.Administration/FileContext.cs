@@ -27,7 +27,7 @@ namespace Microsoft.Web.Administration
 
         private ProtectedConfiguration _protectedConfiguration;
 
-        internal FileContext(ServerManager server, string fileName, FileContext parent, string location, bool appHost, bool dontThrow, bool readOnly)
+        internal FileContext(ServerManager server, string fileName, FileContext parent, string location, bool appHost, bool dontThrow, bool readOnly, int lineNumber = 0)
         {
             _server = server;
             _dontThrow = dontThrow;
@@ -38,6 +38,7 @@ namespace Microsoft.Web.Administration
             FileName = fileName;
             this.Location = location;
             Parent = parent;
+            _lineNumber = lineNumber;
         }
 
         private void Initialize()
@@ -57,8 +58,9 @@ namespace Microsoft.Web.Administration
                 // TODO: merge with the other exception later.
                 throw new FileNotFoundException(
                     string.Format(
-                        "Filename: \\\\?\\{0}\r\nError: Unrecognized configuration path 'MACHINE/WEBROOT/APPHOST/{1}'\r\n\r\n",
+                        "Filename: \\\\?\\{0}\r\nLine number: {1}\r\nError: Unrecognized configuration path 'MACHINE/WEBROOT/APPHOST/{2}'\r\n\r\n",
                         _server.FileName,
+                        _lineNumber,
                         Location));
             }
 
@@ -268,6 +270,7 @@ namespace Microsoft.Web.Administration
         private SectionGroup _rootSectionGroup;
 
         private bool _dirty;
+        private int _lineNumber;
 
         private XElement Root
         {

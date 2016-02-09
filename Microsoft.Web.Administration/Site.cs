@@ -16,7 +16,7 @@ namespace Microsoft.Web.Administration
     using System.Management.Automation;
 #endif
     using System.Runtime.InteropServices;
-
+    using System.Xml;
     public sealed class Site : ConfigurationElement
     {
         private ApplicationCollection _collection;
@@ -133,7 +133,7 @@ namespace Microsoft.Web.Administration
                 }
             }
 
-            return new Configuration(new FileContext(Server, null, null, Name, true, true, true));
+            return new Configuration(new FileContext(Server, null, null, Name, true, true, true, (Entity as IXmlLineInfo).LineNumber));
         }
 
         public ObjectState Start()
