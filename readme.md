@@ -1,3 +1,7 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/kabd0j62wcmsv3ug)](https://ci.appveyor.com/project/jexuswebserver/Microsoft.Web.Administration.Jexus) 
+[![NuGet Version](https://img.shields.io/nuget/v/Microsoft.Web.Administration.Jexus.svg?style=flat)](https://www.nuget.org/packages/Microsoft.Web.Administration.Jexus/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Microsoft.Web.Administration.Jexus.svg?style=flat)](https://www.nuget.org/packages/Microsoft.Web.Administration.Jexus/)
+
 Microsoft.Web.Administration Clone for Jexus Manager from LeXtudio
 ==================================================================
 To develop the cross platform web server manager for Jexus, aka [Jexus Manager](https://jexus.codeplex.com), this project
