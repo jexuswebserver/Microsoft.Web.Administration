@@ -55,7 +55,7 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        internal WorkingMode Mode { get; set; }
+        internal WorkingMode Mode { get; set; } = WorkingMode.IisExpress;
 
         public ServerManager()
             : this(null, true)

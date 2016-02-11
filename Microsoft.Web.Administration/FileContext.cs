@@ -355,6 +355,36 @@ namespace Microsoft.Web.Administration
                     return;
                 }
             }
+            else
+            {
+                var environment = Path.Combine(
+                    Environment.ExpandEnvironmentVariables("%JEXUS_CONFIG%"),
+                    "schema");
+                if (Directory.Exists(environment))
+                {
+                    foreach (var file in Directory.GetFiles(environment))
+                    {
+                        var schemaDoc = XDocument.Load(file);
+                        LoadSchema(schemaDoc);
+                    }
+
+                    return;
+                }
+            }
+
+            var local = Path.Combine(
+                Path.GetDirectoryName(typeof(FileContext).Assembly.Location),
+                "schema");
+            if (Directory.Exists(local))
+            {
+                foreach (var file in Directory.GetFiles(local))
+                {
+                    var schemaDoc = XDocument.Load(file);
+                    LoadSchema(schemaDoc);
+                }
+
+                return;
+            }
         }
 
         private void LoadSchema(XDocument document)
