@@ -12,8 +12,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Microsoft.Web.Administration
 {
@@ -22,8 +22,70 @@ namespace Microsoft.Web.Administration
         internal static readonly Version MinimumServerVersion = new Version("1.0.000530.00");
 
         private static string s_protocol = "https";
+        private static Dictionary<ServerManager, string> _keyCache = new Dictionary<ServerManager, string>();
+        private static Dictionary<ServerManager, string> _certificateCache = new Dictionary<ServerManager, string>();
 
-        private static HttpClient GetClient(this ServerManager server)
+        public static async Task<string> SaveKeyAsync(this ServerManager server, string key)
+        {
+            using (var client = server.GetClient())
+            {
+                HttpResponseMessage response = await client.PostAsJsonAsync("api/server/key/save", key);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = (string)await response.Content.ReadAsAsync(typeof(string));
+                    return result;
+                }
+
+                return string.Empty;
+            }
+        }
+
+        public static async Task<string> SaveCertificateAsync(this ServerManager server, string text)
+        {
+            using (var client = server.GetClient())
+            {
+                HttpResponseMessage response = await client.PostAsJsonAsync("api/server/cert/save", text);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = (string)await response.Content.ReadAsAsync(typeof(string));
+                    return result;
+                }
+
+                return string.Empty;
+            }
+        }
+
+        public static async Task<X509Certificate2> GetCertificateAsync(this ServerManager server)
+        {
+            if (!_certificateCache.ContainsKey(server))
+            {
+                return null;
+            }
+
+            using (var client = server.GetClient())
+            {
+                HttpResponseMessage response = await client.PostAsJsonAsync("api/server/cert", _certificateCache[server]);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = (X509Certificate2)await response.Content.ReadAsAsync(typeof(X509Certificate2));
+                    return result;
+                }
+
+                return null;
+            }
+        }
+
+        public static void SetCertificate(this ServerManager server, string certificate)
+        {
+            _certificateCache[server] = certificate;
+        }
+
+        public static void SetKeyFile(this ServerManager server, string key)
+        {
+            _keyCache[server] = key;
+        }
+
+        internal static HttpClient GetClient(this ServerManager server)
         {
             var client = new HttpClient();
             client.BaseAddress = new Uri(string.Format("{0}://{1}/", s_protocol, server.HostName));
@@ -111,59 +173,6 @@ namespace Microsoft.Web.Administration
                 }
 
                 return false;
-            }
-        }
-
-        public static async Task<string> SaveKeyAsync(this ServerManager server, string key)
-        {
-            using (var client = server.GetClient())
-            {
-                HttpResponseMessage response = await client.PostAsJsonAsync("api/server/key/save", key);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = (string)await response.Content.ReadAsAsync(typeof(string));
-                    return result;
-                }
-
-                return string.Empty;
-            }
-        }
-
-        public static async Task<string> SaveCertificateAsync(this ServerManager server, string text)
-        {
-            using (var client = server.GetClient())
-            {
-                HttpResponseMessage response = await client.PostAsJsonAsync("api/server/cert/save", text);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = (string)await response.Content.ReadAsAsync(typeof(string));
-                    return result;
-                }
-
-                return string.Empty;
-            }
-        }
-
-        private static Dictionary<ServerManager, string> _keyCache = new Dictionary<ServerManager, string>();
-        private static Dictionary<ServerManager, string> _certificateCache = new Dictionary<ServerManager, string>();
-
-        public static async Task<X509Certificate2> GetCertificateAsync(this ServerManager server)
-        {
-            if (!_certificateCache.ContainsKey(server))
-            {
-                return null;
-            }
-
-            using (var client = server.GetClient())
-            {
-                HttpResponseMessage response = await client.PostAsJsonAsync("api/server/cert", _certificateCache[server]);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = (X509Certificate2)await response.Content.ReadAsAsync(typeof(X509Certificate2));
-                    return result;
-                }
-
-                return null;
             }
         }
 
@@ -771,16 +780,6 @@ namespace Microsoft.Web.Administration
                     }
                 }
             }
-        }
-
-        public static void SetCertificate(this ServerManager server, string certificate)
-        {
-            _certificateCache[server] = certificate;
-        }
-
-        public static void SetKeyFile(this ServerManager server, string key)
-        {
-            _keyCache[server] = key;
         }
     }
 }

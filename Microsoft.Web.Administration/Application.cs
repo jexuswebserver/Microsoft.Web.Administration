@@ -200,7 +200,7 @@ namespace Microsoft.Web.Administration
             get { return Parent.Parent.Parent.Parent; }
         }
 
-        internal static readonly string RootPath = "/";
+        internal static readonly string RootPath = Helper.RootPath;
 
         internal string Name { get; set; }
 

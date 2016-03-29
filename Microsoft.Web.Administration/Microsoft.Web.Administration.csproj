@@ -75,6 +75,7 @@
     <Compile Include="ApplicationPathValidator.cs" />
     <Compile Include="ApplicationPoolNameValidator.cs" />
     <Compile Include="AsyncHelper.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="ConfigurationAttributeSchemaExtensions.cs" />
     <Compile Include="DefaultEncryptionServiceProvider.cs" />
     <Compile Include="IEncryptionServiceProvider.cs" />
@@ -84,7 +85,7 @@
     <Compile Include="ConfigurationLockCollection.cs" />
     <Compile Include="ConfigurationValidatorBase.cs" />
     <Compile Include="DefaultValidator.cs" />
-    <Compile Include="Helper.cs" />
+    <Compile Include="CommonHelper.cs" />
     <Compile Include="ApplicationPool.cs" />
     <Compile Include="ApplicationPoolCollection.cs" />
     <Compile Include="ApplicationPoolCpu.cs" />
