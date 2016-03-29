@@ -25,7 +25,7 @@ namespace Microsoft.Web.Administration
             throw new NotImplementedException();
         }
 
-        protected override XElement CreateEntity()
+        internal override XElement CreateEntity()
         {
             return this.FileContext.CreateElement(SectionPath, Location);
         }

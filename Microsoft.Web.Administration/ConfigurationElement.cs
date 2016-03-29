@@ -125,7 +125,7 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        protected virtual XElement CreateEntity()
+        internal virtual XElement CreateEntity()
         {
             if (ElementTagName.Contains('/'))
             {
