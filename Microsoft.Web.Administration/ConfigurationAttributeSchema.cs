@@ -151,56 +151,6 @@ namespace Microsoft.Web.Administration
             _validator.Validate(result);
         }
 
-        internal string Format(object value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-
-            if (Type == "enum")
-            {
-                return GetEnumValues().GetName((long)value);
-            }
-
-            if (this.Type == "flags")
-            {
-                var longValue = (long)value;
-                var result = new StringBuilder();
-                foreach (ConfigurationEnumValue item in this.GetEnumValues())
-                {
-                    if (item.Value == 0)
-                    {
-                        if (longValue == 0)
-                        {
-                            return item.Name;
-                        }
-
-                        continue;
-                    }
-
-                    if ((longValue & item.Value) == item.Value)
-                    {
-                        result.AppendFormat("{0},", item.Name);
-                    }
-                }
-
-                if (result[result.Length - 1] == ',')
-                {
-                    result.Length--;
-                }
-
-                return result.ToString();
-            }
-
-            if (Type == "bool")
-            {
-                return (bool)value ? "true" : "false";
-            }
-
-            return value.ToString();
-        }
-
         public string ValidationParameter { get; internal set; }
         public string ValidationType { get; internal set; }
 

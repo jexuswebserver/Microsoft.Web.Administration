@@ -173,9 +173,9 @@ namespace Microsoft.Web.Administration
 
         #region Constants
 
-        public const uint HTTP_INITIALIZE_CONFIG = 0x00000002;
-        public const uint HTTP_SERVICE_CONFIG_SSL_FLAG_NEGOTIATE_CLIENT_CERT = 0x00000002;
-        public const uint HTTP_SERVICE_CONFIG_SSL_FLAG_NO_RAW_FILTER = 0x00000004;
+        internal const uint HTTP_INITIALIZE_CONFIG = 0x00000002;
+        internal const uint HTTP_SERVICE_CONFIG_SSL_FLAG_NEGOTIATE_CLIENT_CERT = 0x00000002;
+        internal const uint HTTP_SERVICE_CONFIG_SSL_FLAG_NO_RAW_FILTER = 0x00000004;
         private const uint NOERROR = 0;
         private const uint ERROR_INSUFFICIENT_BUFFER = 122;
         private const uint ERROR_ALREADY_EXISTS = 183;
@@ -979,7 +979,7 @@ namespace Microsoft.Web.Administration
         private static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        public struct SHELLEXECUTEINFO
+        internal struct SHELLEXECUTEINFO
         {
             public int cbSize;
             public uint fMask;
@@ -1005,7 +1005,8 @@ namespace Microsoft.Web.Administration
 
         private const int SW_SHOW = 5;
         private const uint SEE_MASK_INVOKEIDLIST = 12;
-        public static bool ShowFileProperties(string Filename)
+
+        internal static bool ShowFileProperties(string Filename)
         {
             SHELLEXECUTEINFO info = new SHELLEXECUTEINFO();
             info.cbSize = Marshal.SizeOf(info);
