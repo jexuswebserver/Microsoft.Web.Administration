@@ -41,10 +41,6 @@ namespace Microsoft.Web.Administration
 
         internal string Credentials { get; set; }
 
-        internal string Certificate { get; set; }
-
-        internal string KeyFile { get; set; }
-
         internal string Title
         {
             get
@@ -55,7 +51,7 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        internal WorkingMode Mode { get; set; } = WorkingMode.IisExpress;
+        public WorkingMode Mode { get; set; } = WorkingMode.IisExpress;
 
         public ServerManager()
             : this(null, true)

@@ -11,7 +11,7 @@ using System.Xml.Linq;
 
 namespace Microsoft.Web.Administration
 {
-    internal static class Helper
+    public static class Helper
     {
         internal static bool GetIsSni(this Binding binding)
         {
@@ -19,7 +19,7 @@ namespace Microsoft.Web.Administration
             return ((uint)value & 1U) == 1U;
         }
 
-        public static List<string> Load(this SortedDictionary<string, List<string>> variables, List<string> defaultValue, params string[] names)
+        internal static List<string> Load(this SortedDictionary<string, List<string>> variables, List<string> defaultValue, params string[] names)
         {
             foreach (var name in names)
             {
@@ -34,7 +34,7 @@ namespace Microsoft.Web.Administration
             return defaultValue;
         }
 
-        public static string ToPath(this string fileName, out string applicationName)
+        internal static string ToPath(this string fileName, out string applicationName)
         {
             // TODO: merge the code
             var appName = new StringBuilder();
@@ -48,13 +48,13 @@ namespace Microsoft.Web.Administration
             return appName.ToString();
         }
 
-        public static string PathToName(this string path)
+        internal static string PathToName(this string path)
         {
             var last = path.LastIndexOf('/');
             return path.Substring(last + 1);
         }
 
-        public static string ExtractName(this string hostname)
+        internal static string ExtractName(this string hostname)
         {
             if (hostname == null)
             {
@@ -66,13 +66,13 @@ namespace Microsoft.Web.Administration
             return index >= 0 ? hostname.Substring(0, index) : hostname;
         }
 
-        public static string ExtractUser(this string credential)
+        internal static string ExtractUser(this string credential)
         {
             var index = credential.IndexOf('|');
             return index >= 0 ? credential.Substring(0, index) : credential;
         }
 
-        internal static bool IsRunningOnMono()
+        public static bool IsRunningOnMono()
         {
             return Type.GetType("Mono.Runtime") != null;
         }
@@ -133,7 +133,7 @@ namespace Microsoft.Web.Administration
             return virtualDirectory.Application.Site.Name + virtualDirectory.PathToSite();
         }
 
-        public static bool IsJexus(ServerManager server, Application application)
+        internal static bool IsJexus(ServerManager server, Application application)
         {
             if (server != null)
             {
@@ -184,7 +184,7 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static string ToString(ManagedPipelineMode managedPipelineMode)
+        internal static string ToString(ManagedPipelineMode managedPipelineMode)
         {
             switch (managedPipelineMode)
             {

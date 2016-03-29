@@ -17,7 +17,7 @@ using System.Text;
 
 namespace Microsoft.Web.Administration
 {
-    internal static class JexusHelper
+    public static class JexusHelper
     {
         internal static readonly Version MinimumServerVersion = new Version("1.0.000530.00");
 
@@ -114,7 +114,7 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static async Task<string> SaveKey(this ServerManager server, string key)
+        public static async Task<string> SaveKeyAsync(this ServerManager server, string key)
         {
             using (var client = server.GetClient())
             {
@@ -129,7 +129,7 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static async Task<string> SaveCertificate(this ServerManager server, string text)
+        public static async Task<string> SaveCertificateAsync(this ServerManager server, string text)
         {
             using (var client = server.GetClient())
             {
@@ -144,16 +144,19 @@ namespace Microsoft.Web.Administration
             }
         }
 
+        private static Dictionary<ServerManager, string> _keyCache = new Dictionary<ServerManager, string>();
+        private static Dictionary<ServerManager, string> _certificateCache = new Dictionary<ServerManager, string>();
+
         public static async Task<X509Certificate2> GetCertificateAsync(this ServerManager server)
         {
-            if (string.IsNullOrWhiteSpace(server.Certificate))
+            if (!_certificateCache.ContainsKey(server))
             {
                 return null;
             }
 
             using (var client = server.GetClient())
             {
-                HttpResponseMessage response = await client.PostAsJsonAsync("api/server/cert", server.Certificate);
+                HttpResponseMessage response = await client.PostAsJsonAsync("api/server/cert", _certificateCache[server]);
                 if (response.IsSuccessStatusCode)
                 {
                     var result = (X509Certificate2)await response.Content.ReadAsAsync(typeof(X509Certificate2));
@@ -215,8 +218,8 @@ namespace Microsoft.Web.Administration
 
             server.SiteFolder = variables.Load(new List<string> { "siteconf" }, "siteconfigdir")[0];
             server.LogFolder = variables.Load(new List<string> { "log" }, "sitelogdir")[0];
-            server.Certificate = variables.Load(new List<string> { string.Empty }, "certificatefile")[0];
-            server.KeyFile = variables.Load(new List<string> { string.Empty }, "certificatekeyfile")[0];
+            _certificateCache.Add(server, variables.Load(new List<string> { string.Empty }, "certificatefile")[0]);
+            _keyCache.Add(server, variables.Load(new List<string> { string.Empty }, "certificatekeyfile")[0]);
 
             IEnumerable<string> sites = null;
             if (server.Credentials == null)
@@ -263,8 +266,8 @@ namespace Microsoft.Web.Administration
             variables.Add("httpd.user", new List<string> { pool.ProcessModel.UserName });
             variables.Add("siteconfigdir", new List<string> { server.SiteFolder });
             variables.Add("sitelogdir", new List<string> { server.LogFolder });
-            variables.Add("certificatefile", new List<string> { server.Certificate });
-            variables.Add("certificatekeyfile", new List<string> { server.KeyFile });
+            variables.Add("certificatefile", new List<string> { _certificateCache[server] });
+            variables.Add("certificatekeyfile", new List<string> { _keyCache[server] });
             if (string.IsNullOrEmpty(server.HostName))
             {
                 var lines = new List<string>();
@@ -768,6 +771,16 @@ namespace Microsoft.Web.Administration
                     }
                 }
             }
+        }
+
+        public static void SetCertificate(this ServerManager server, string certificate)
+        {
+            _certificateCache[server] = certificate;
+        }
+
+        public static void SetKeyFile(this ServerManager server, string key)
+        {
+            _keyCache[server] = key;
         }
     }
 }

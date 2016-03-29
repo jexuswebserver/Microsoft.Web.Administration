@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Web.Administration
 {
-    internal static class AsyncHelper
+    public static class AsyncHelper
     {
         private static readonly TaskFactory s_myTaskFactory = new
           TaskFactory(CancellationToken.None,

@@ -4,7 +4,7 @@
 
 namespace Microsoft.Web.Administration
 {
-    internal enum WorkingMode
+    public enum WorkingMode
     {
         Iis = 0,
         IisExpress = 1,
