@@ -19,6 +19,7 @@ namespace Microsoft.Web.Administration
     using System.Xml;
     public sealed class Site : ConfigurationElement
     {
+        private const string command = "/config:\"{0}\" /siteid:{1} /systray:false /trace:error";
         private ApplicationCollection _collection;
         private BindingCollection _bindings;
         private SiteLogFile _logFile;
@@ -170,7 +171,7 @@ namespace Microsoft.Web.Administration
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = fileName,
-                        Arguments = string.Format("/config:\"{0}\" /siteid:{1} /systray:false /trace:error", this.FileContext.FileName, Id),
+                        Arguments = string.Format(command, this.FileContext.FileName, Id),
                         WindowStyle = ProcessWindowStyle.Hidden,
                         UseShellExecute = false,
                         CreateNoWindow = true,
@@ -215,7 +216,7 @@ namespace Microsoft.Web.Administration
             {
                 var items = Process.GetProcessesByName("iisexpress");
                 var found = items.Where(item =>
-                    item.GetCommandLine().EndsWith(string.Format("/config:\"{0}\" /siteid:{1} /systray:false", this.FileContext.FileName, Id), StringComparison.Ordinal));
+                    item.GetCommandLine().EndsWith(string.Format(command, this.FileContext.FileName, Id), StringComparison.Ordinal));
                 foreach (var item in found)
                 {
                     item.Kill();
@@ -277,7 +278,7 @@ namespace Microsoft.Web.Administration
             {
                 var items = Process.GetProcessesByName("iisexpress");
                 var found = items.Where(item =>
-                    item.GetCommandLine().EndsWith(string.Format("/siteid:{0} /systray:false", Id)));
+                    item.GetCommandLine().EndsWith(string.Format(command, FileContext.FileName, Id), StringComparison.Ordinal));
                 return found.Any();
             }
 
