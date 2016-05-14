@@ -100,6 +100,7 @@ namespace Tests
             Assert.Equal(
                 new[] { '\\', '?', ';', ':', '@', '&', '=', '+', '$', ',', '|', '"', '<', '>', '*' },
                 ApplicationCollection.InvalidApplicationPathCharacters());
+            Assert.Equal("Clr4IntegratedAppPool", app.ApplicationPoolName);
 
             Assert.Equal("/", app.Path);
             var vDir = app.VirtualDirectories[0];

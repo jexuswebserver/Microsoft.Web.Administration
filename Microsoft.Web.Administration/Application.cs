@@ -155,12 +155,12 @@ namespace Microsoft.Web.Administration
             get
             {
                 var value = (string)this["applicationPool"];
-                return string.IsNullOrWhiteSpace(value) ? Parent.Parent.ApplicationDefaults.ApplicationPoolName : value;
+                return string.IsNullOrWhiteSpace(value) ? Server.ApplicationDefaults.ApplicationPoolName : value;
             }
 
             set
             {
-                if (value == Parent.Parent.ApplicationDefaults.ApplicationPoolName)
+                if (value == Server.ApplicationDefaults.ApplicationPoolName)
                 {
                     value = string.Empty;
                 }
