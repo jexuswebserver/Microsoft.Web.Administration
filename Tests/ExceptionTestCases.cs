@@ -521,5 +521,42 @@ namespace Tests
             Assert.Equal(true, windowsSection.IsLocked);
             Assert.Equal(false, windowsSection.IsLocallyStored);
         }
+
+        [Fact]
+        public void TestIisExpressLogFileInheritance()
+        {
+            var directoryName = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            Environment.SetEnvironmentVariable("JEXUS_TEST_HOME", directoryName);
+
+            if (directoryName == null)
+            {
+                return;
+            }
+
+            string Current = Path.Combine(directoryName, @"applicationHost.config");
+            string Original = Path.Combine(directoryName, @"original2_logfile.config");
+            TestHelper.CopySiteConfig(directoryName, "original.config");
+            File.Copy(Original, Current, true);
+            TestHelper.FixPhysicalPathMono(Current);
+
+            var server = new ServerManager(Current);
+            {
+                var site = server.Sites[0];
+                Assert.Equal(@"%IIS_USER_HOME%\Logs", site.LogFile.Directory);
+                Assert.Equal(LogFormat.W3c, site.LogFile.LogFormat);
+            }
+
+            {
+                var site = server.Sites[1];
+                Assert.Equal(@"%IIS_USER_HOME%\Logs", site.LogFile.Directory);
+                Assert.Equal(LogFormat.Iis, site.LogFile.LogFormat);
+            }
+
+            {
+                var site = server.Sites[2];
+                Assert.Equal(@"%IIS_USER_HOME%\Logs\1", site.LogFile.Directory);
+                Assert.Equal(LogFormat.W3c, site.LogFile.LogFormat);
+            }
+        }
     }
 }
