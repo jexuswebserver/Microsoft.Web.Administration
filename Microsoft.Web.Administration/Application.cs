@@ -44,6 +44,13 @@ namespace Microsoft.Web.Administration
             }
 
             Location = this.Site.Name + this.Path;
+            foreach (ApplicationPool pool in Server.ApplicationPools)
+            {
+                if (pool.Name == ApplicationPoolName)
+                {
+                    pool.ApplicationCount++;
+                }
+            }
         }
 
         internal string Location { get; set; }

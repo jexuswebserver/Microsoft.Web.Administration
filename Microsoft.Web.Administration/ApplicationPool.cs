@@ -172,5 +172,7 @@ namespace Microsoft.Web.Administration
         {
             return Name;
         }
+
+        internal int ApplicationCount { get; set; }
     }
 }

@@ -69,6 +69,8 @@ namespace Tests
             Assert.Equal(1L, pool.GetAttributeValue("managedPipelineMode"));
             pool.SetAttributeValue("managedPipelineMode", "Integrated");
             Assert.Equal(0L, pool.GetAttributeValue("managedPipelineMode"));
+
+            Assert.Equal(14, pool.ApplicationCount);
 #endif
             var name = Assert.Throws<COMException>(() => pool.SetAttributeValue("name", ""));
             Assert.Equal("Invalid application pool name\r\n", name.Message);
