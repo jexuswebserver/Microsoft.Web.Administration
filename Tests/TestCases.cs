@@ -90,6 +90,7 @@ namespace Tests
             Assert.True(site.Bindings.AllowsAdd);
             Assert.True(site.Bindings.AllowsClear);
             Assert.False(site.Bindings.AllowsRemove);
+            Assert.Equal("%IIS_USER_HOME%\\Logs", site.LogFile.Directory);
 
             var sslSite = server.Sites[1];
             var sslBinding = sslSite.Bindings[1];

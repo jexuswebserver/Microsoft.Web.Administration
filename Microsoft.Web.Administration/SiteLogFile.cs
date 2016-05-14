@@ -9,6 +9,7 @@ namespace Microsoft.Web.Administration
     public sealed class SiteLogFile : ConfigurationElement
     {
         private CustomLogFieldCollection _collection;
+        private readonly SiteLogFile _logFile;
 
         internal SiteLogFile(ConfigurationElement parent)
             : this(null, parent)
@@ -17,6 +18,8 @@ namespace Microsoft.Web.Administration
         internal SiteLogFile(ConfigurationElement element, ConfigurationElement parent)
             : base(element, "logFile", null, parent, null, null)
         {
+            var server = (parent as Site)?.Server;
+            _logFile = server?.SiteDefaults.LogFile;
         }
 
         public CustomLogFieldCollection CustomLogFields
@@ -40,8 +43,25 @@ namespace Microsoft.Web.Administration
         }
         public string Directory
         {
-            get { return (string)this["directory"]; }
-            set { this["directory"] = value; }
+            get
+            {
+                var attribute = GetAttribute("directory");
+                return attribute.IsInheritedFromDefaultValue
+                    ? _logFile.Directory
+                    : (string)attribute.Value;
+            }
+
+            set
+            {
+                var attribute = GetAttribute("directory");
+                if (value == _logFile.Directory)
+                {
+                    attribute.Delete();
+                    return;
+                }
+
+                attribute.Value = value;
+            }
         }
 
         public bool Enabled

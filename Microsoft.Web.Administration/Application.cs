@@ -161,18 +161,22 @@ namespace Microsoft.Web.Administration
         {
             get
             {
-                var value = (string)this["applicationPool"];
-                return string.IsNullOrWhiteSpace(value) ? Server.ApplicationDefaults.ApplicationPoolName : value;
+                var attribute = GetAttribute("applicationPool");
+                return attribute.IsInheritedFromDefaultValue 
+                    ? Server.ApplicationDefaults.ApplicationPoolName 
+                    : (string)attribute.Value;
             }
 
             set
             {
+                var attribute = GetAttribute("applicationPool");
                 if (value == Server.ApplicationDefaults.ApplicationPoolName)
                 {
-                    value = string.Empty;
+                    attribute.Delete();
+                    return;
                 }
 
-                this["applicationPool"] = value;
+                attribute.Value = value;
             }
         }
 

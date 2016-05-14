@@ -30,7 +30,11 @@ namespace Microsoft.Web.Administration
             Schema = schema;
             IsProtected = schema?.IsEncrypted ?? false;
             var clear = Decrypt(value).ToString();
-            _value = Schema == null ? clear : Schema.Parse(clear);
+            var raw = Schema == null ? clear : Schema.Parse(clear);
+            var result = TypeMatch(raw);
+            IsInheritedFromDefaultValue = (Schema == null || !Schema.IsRequired)
+                                                    && result.Equals(ExtractDefaultValue());
+            SetValue(raw);
             _element.InnerEntity.SetAttributeValue(Name, value);
         }
 
@@ -47,7 +51,8 @@ namespace Microsoft.Web.Administration
             Schema = schema;
             IsProtected = schema?.IsEncrypted ?? false;
             var clear = this.Decrypt(this.ExtractDefaultValue());
-            _value = clear;
+            IsInheritedFromDefaultValue = true;
+            SetValue(clear);
         }
 
         internal object ExtractDefaultValue()
@@ -59,7 +64,7 @@ namespace Microsoft.Web.Administration
                 var parentElementInFile = _element.GetParentElement();
                 result = parentElementInFile == null ? Schema?.DefaultValue : parentElementInFile.Attributes[Name].Value;
             }
-            else if (_element.Section.Location == null)
+            else if (_element.Section?.Location == null)
             {
                 // root config
                 result = Decrypt(Schema?.DefaultValue);

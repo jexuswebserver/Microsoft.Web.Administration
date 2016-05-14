@@ -449,6 +449,11 @@ namespace Microsoft.Web.Administration
 
         internal ConfigurationElement GetElementAtParentLocationInFileContext(FileContext core)
         {
+            if (Section == null)
+            {
+                return null;
+            }
+
             if (Section.Location == null)
             {
                 if (core != null && core.Parent == null && Schema.Path == "configProtectedData/providers")
