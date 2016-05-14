@@ -1,4 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/kabd0j62wcmsv3ug)](https://ci.appveyor.com/project/jexuswebserver/Microsoft.Web.Administration.Jexus) 
+[![Build status](https://ci.appveyor.com/api/projects/status/kabd0j62wcmsv3ug?svg=true)](https://ci.appveyor.com/project/lextm/microsoft-web-administration)
 [![NuGet Version](https://img.shields.io/nuget/v/Microsoft.Web.Administration.Jexus.svg?style=flat)](https://www.nuget.org/packages/Microsoft.Web.Administration.Jexus/)
 
 Microsoft.Web.Administration Clone for Jexus Manager from LeXtudio
