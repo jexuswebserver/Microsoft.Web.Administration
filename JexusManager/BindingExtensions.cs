@@ -56,32 +56,40 @@ namespace Microsoft.Web.Administration
                 var sni = NativeMethods.QuerySslSniInfo(new Tuple<string, int>(binding.Host, binding.EndPoint.Port));
                 if (sni == null)
                 {
-                    // register mapping
-                    using (var process = new Process())
+                    try
                     {
-                        var start = process.StartInfo;
-                        start.Verb = "runas";
-                        start.FileName = "cmd";
-                        start.Arguments = string.Format(
-                            "/c \"\"{2}\" /h:\"{0}\" /s:{1}\" /i:{3} /a:{4} /o:{5} /x:{6}",
-                            Hex.ToHexString(binding.CertificateHash),
-                            binding.CertificateStoreName,
-                            Path.Combine(Environment.CurrentDirectory, "certificateinstaller.exe"),
-                            AppIdIisExpress,
-                            binding.EndPoint.Address,
-                            binding.EndPoint.Port,
-                            binding.Host);
-                        start.CreateNoWindow = true;
-                        start.WindowStyle = ProcessWindowStyle.Hidden;
-                        process.Start();
-                        process.WaitForExit();
-
-                        if (process.ExitCode != 0)
+                        // register mapping
+                        using (var process = new Process())
                         {
-                            return "Register new certificate failed: access is denied";
-                        }
+                            var start = process.StartInfo;
+                            start.Verb = "runas";
+                            start.FileName = "cmd";
+                            start.Arguments = string.Format(
+                                "/c \"\"{2}\" /h:\"{0}\" /s:{1}\" /i:{3} /a:{4} /o:{5} /x:{6}",
+                                Hex.ToHexString(binding.CertificateHash),
+                                binding.CertificateStoreName,
+                                Path.Combine(Environment.CurrentDirectory, "certificateinstaller.exe"),
+                                AppIdIisExpress,
+                                binding.EndPoint.Address,
+                                binding.EndPoint.Port,
+                                binding.Host);
+                            start.CreateNoWindow = true;
+                            start.WindowStyle = ProcessWindowStyle.Hidden;
+                            process.Start();
+                            process.WaitForExit();
 
-                        return string.Empty;
+                            if (process.ExitCode != 0)
+                            {
+                                return "Register new certificate failed: access is denied";
+                            }
+
+                            return string.Empty;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // elevation is cancelled.
+                        return "Register new certificate failed: operation is cancelled";
                     }
                 }
 
@@ -100,32 +108,40 @@ namespace Microsoft.Web.Administration
                         return "Certificate hash does not match. Please use the certificate that matches HTTPS binding";
                     }
 
-                    // register mapping
-                    using (var process = new Process())
+                    try
                     {
-                        var start = process.StartInfo;
-                        start.Verb = "runas";
-                        start.FileName = "cmd";
-                        start.Arguments = string.Format(
-                            "/c \"\"{2}\" /h:\"{0}\" /s:{1}\" /i:{3} /a:{4} /o:{5} /x:{6}",
-                            Hex.ToHexString(binding.CertificateHash),
-                            binding.CertificateStoreName,
-                            Path.Combine(Environment.CurrentDirectory, "certificateinstaller.exe"),
-                            AppIdIisExpress,
-                            binding.EndPoint.Address,
-                            binding.EndPoint.Port,
-                            binding.Host);
-                        start.CreateNoWindow = true;
-                        start.WindowStyle = ProcessWindowStyle.Hidden;
-                        process.Start();
-                        process.WaitForExit();
-
-                        if (process.ExitCode != 0)
+                        // register mapping
+                        using (var process = new Process())
                         {
-                            return "Register new certificate failed: access is denied";
-                        }
+                            var start = process.StartInfo;
+                            start.Verb = "runas";
+                            start.FileName = "cmd";
+                            start.Arguments = string.Format(
+                                "/c \"\"{2}\" /h:\"{0}\" /s:{1}\" /i:{3} /a:{4} /o:{5} /x:{6}",
+                                Hex.ToHexString(binding.CertificateHash),
+                                binding.CertificateStoreName,
+                                Path.Combine(Environment.CurrentDirectory, "certificateinstaller.exe"),
+                                AppIdIisExpress,
+                                binding.EndPoint.Address,
+                                binding.EndPoint.Port,
+                                binding.Host);
+                            start.CreateNoWindow = true;
+                            start.WindowStyle = ProcessWindowStyle.Hidden;
+                            process.Start();
+                            process.WaitForExit();
 
-                        return string.Empty;
+                            if (process.ExitCode != 0)
+                            {
+                                return "Register new certificate failed: access is denied";
+                            }
+
+                            return string.Empty;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // elevation is cancelled.
+                        return "Register new certificate failed: operation is cancelled";
                     }
                 }
 
@@ -143,31 +159,39 @@ namespace Microsoft.Web.Administration
             var certificate = NativeMethods.QuerySslCertificateInfo(binding.EndPoint);
             if (certificate == null)
             {
-                // register mapping
-                using (var process = new Process())
+                try
                 {
-                    var start = process.StartInfo;
-                    start.Verb = "runas";
-                    start.FileName = "cmd";
-                    start.Arguments = string.Format(
-                        "/c \"\"{2}\" /h:\"{0}\" /s:{1}\" /i:{3} /a:{4} /o:{5}",
-                        Hex.ToHexString(binding.CertificateHash),
-                        binding.CertificateStoreName,
-                        Path.Combine(Environment.CurrentDirectory, "certificateinstaller.exe"),
-                        AppIdIisExpress,
-                        binding.EndPoint.Address,
-                        binding.EndPoint.Port);
-                    start.CreateNoWindow = true;
-                    start.WindowStyle = ProcessWindowStyle.Hidden;
-                    process.Start();
-                    process.WaitForExit();
-
-                    if (process.ExitCode != 0)
+                    // register mapping
+                    using (var process = new Process())
                     {
-                        return "Register new certificate failed: access is denied";
-                    }
+                        var start = process.StartInfo;
+                        start.Verb = "runas";
+                        start.FileName = "cmd";
+                        start.Arguments = string.Format(
+                            "/c \"\"{2}\" /h:\"{0}\" /s:{1}\" /i:{3} /a:{4} /o:{5}",
+                            Hex.ToHexString(binding.CertificateHash),
+                            binding.CertificateStoreName,
+                            Path.Combine(Environment.CurrentDirectory, "certificateinstaller.exe"),
+                            AppIdIisExpress,
+                            binding.EndPoint.Address,
+                            binding.EndPoint.Port);
+                        start.CreateNoWindow = true;
+                        start.WindowStyle = ProcessWindowStyle.Hidden;
+                        process.Start();
+                        process.WaitForExit();
 
-                    return string.Empty;
+                        if (process.ExitCode != 0)
+                        {
+                            return "Register new certificate failed: access is denied";
+                        }
+
+                        return string.Empty;
+                    }
+                }
+                catch (Exception)
+                {
+                    // elevation is cancelled.
+                    return "Register new certificate failed: operation is cancelled";
                 }
             }
 
@@ -185,31 +209,39 @@ namespace Microsoft.Web.Administration
                     return "Certificate hash does not match. Please use the certificate that matches HTTPS binding";
                 }
 
-                // register mapping
-                using (var process = new Process())
+                try
                 {
-                    var start = process.StartInfo;
-                    start.Verb = "runas";
-                    start.FileName = "cmd";
-                    start.Arguments = string.Format(
-                        "/c \"\"{2}\" /h:\"{0}\" /s:{1}\" /i:{3} /a:{4} /o:{5}",
-                        Hex.ToHexString(binding.CertificateHash),
-                        binding.CertificateStoreName,
-                        Path.Combine(Environment.CurrentDirectory, "certificateinstaller.exe"),
-                        AppIdIisExpress,
-                        binding.EndPoint.Address,
-                        binding.EndPoint.Port);
-                    start.CreateNoWindow = true;
-                    start.WindowStyle = ProcessWindowStyle.Hidden;
-                    process.Start();
-                    process.WaitForExit();
-
-                    if (process.ExitCode != 0)
+                    // register mapping
+                    using (var process = new Process())
                     {
-                        return "Register new certificate failed: access is denied";
-                    }
+                        var start = process.StartInfo;
+                        start.Verb = "runas";
+                        start.FileName = "cmd";
+                        start.Arguments = string.Format(
+                            "/c \"\"{2}\" /h:\"{0}\" /s:{1}\" /i:{3} /a:{4} /o:{5}",
+                            Hex.ToHexString(binding.CertificateHash),
+                            binding.CertificateStoreName,
+                            Path.Combine(Environment.CurrentDirectory, "certificateinstaller.exe"),
+                            AppIdIisExpress,
+                            binding.EndPoint.Address,
+                            binding.EndPoint.Port);
+                        start.CreateNoWindow = true;
+                        start.WindowStyle = ProcessWindowStyle.Hidden;
+                        process.Start();
+                        process.WaitForExit();
 
-                    return string.Empty;
+                        if (process.ExitCode != 0)
+                        {
+                            return "Register new certificate failed: access is denied";
+                        }
+
+                        return string.Empty;
+                    }
+                }
+                catch (Exception)
+                {
+                    // elevation is cancelled.
+                    return "Register new certificate failed: operation is cancelled";
                 }
             }
 
@@ -316,31 +348,39 @@ namespace Microsoft.Web.Administration
                 return string.Empty;
             }
 #endif
-            // remove sni mapping
-            using (var process = new Process())
+            try
             {
-                var start = process.StartInfo;
-                start.Verb = "runas";
-                start.FileName = "cmd";
-                start.Arguments = string.Format(
-                    "/c \"\"{2}\" /h:\"{0}\" /s:{1}\" /i:{3} /o:{4} /x:{5}",
-                    Hex.ToHexString(binding.CertificateHash),
-                    binding.CertificateStoreName,
-                    Path.Combine(Environment.CurrentDirectory, "certificateinstaller.exe"),
-                    AppIdIisExpress,
-                    binding.EndPoint.Port,
-                    binding.Host);
-                start.CreateNoWindow = true;
-                start.WindowStyle = ProcessWindowStyle.Hidden;
-                process.Start();
-                process.WaitForExit();
-
-                if (process.ExitCode != 0)
+                // remove sni mapping
+                using (var process = new Process())
                 {
-                    return "Remove SNI certificate failed: access is denied";
-                }
+                    var start = process.StartInfo;
+                    start.Verb = "runas";
+                    start.FileName = "cmd";
+                    start.Arguments = string.Format(
+                        "/c \"\"{2}\" /h:\"{0}\" /s:{1}\" /i:{3} /o:{4} /x:{5}",
+                        Hex.ToHexString(binding.CertificateHash),
+                        binding.CertificateStoreName,
+                        Path.Combine(Environment.CurrentDirectory, "certificateinstaller.exe"),
+                        AppIdIisExpress,
+                        binding.EndPoint.Port,
+                        binding.Host);
+                    start.CreateNoWindow = true;
+                    start.WindowStyle = ProcessWindowStyle.Hidden;
+                    process.Start();
+                    process.WaitForExit();
 
-                return string.Empty;
+                    if (process.ExitCode != 0)
+                    {
+                        return "Remove SNI certificate failed: access is denied";
+                    }
+
+                    return string.Empty;
+                }
+            }
+            catch (Exception)
+            {
+                // elevation is cancelled.
+                return "Remove SNI certificate failed: operation is cancelled";
             }
         }
     }

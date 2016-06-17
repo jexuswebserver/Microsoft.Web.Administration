@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Microsoft.Web.Administration
 {
@@ -66,30 +67,30 @@ namespace Microsoft.Web.Administration
             HttpServiceConfigSslSniCertInfo,
             HttpServiceConfigMax
         }
-        [StructLayout(LayoutKind.Sequential)]
 
+        [StructLayout(LayoutKind.Sequential)]
         private struct HTTP_SERVICE_CONFIG_SSL_SET
         {
             public HTTP_SERVICE_CONFIG_SSL_KEY KeyDesc;
             public HTTP_SERVICE_CONFIG_SSL_PARAM ParamDesc;
         }
-        [StructLayout(LayoutKind.Sequential)]
 
+        [StructLayout(LayoutKind.Sequential)]
         private struct HTTP_SERVICE_CONFIG_SSL_SNI_SET
         {
             public HTTP_SERVICE_CONFIG_SSL_SNI_KEY KeyDesc;
             public HTTP_SERVICE_CONFIG_SSL_PARAM ParamDesc;
         }
-        [StructLayout(LayoutKind.Sequential)]
 
+        [StructLayout(LayoutKind.Sequential)]
         private struct HTTP_SERVICE_CONFIG_SSL_SNI_KEY
         {
             public SOCKADDR_STORAGE IpPort;
             [MarshalAs(UnmanagedType.LPWStr)]
             public string Host;
         }
-        [StructLayout(LayoutKind.Sequential)]
 
+        [StructLayout(LayoutKind.Sequential)]
         private struct SOCKADDR_STORAGE
         {
             public short ss_family;
@@ -102,8 +103,8 @@ namespace Microsoft.Web.Administration
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 112)]
             public byte[] __ss_pad2;
         }
-        [StructLayout(LayoutKind.Sequential)]
 
+        [StructLayout(LayoutKind.Sequential)]
         private struct HTTP_SERVICE_CONFIG_SSL_KEY
         {
             public IntPtr pIpPort;
@@ -113,8 +114,8 @@ namespace Microsoft.Web.Administration
                 this.pIpPort = pIpPort;
             }
         }
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         private struct HTTP_SERVICE_CONFIG_SSL_PARAM
         {
             public int SslHashLength;
@@ -131,8 +132,8 @@ namespace Microsoft.Web.Administration
             public string pDefaultSslCtlStoreName;
             public uint DefaultFlags;
         }
-        [StructLayout(LayoutKind.Sequential, Pack = 2)]
 
+        [StructLayout(LayoutKind.Sequential, Pack = 2)]
         private struct HTTPAPI_VERSION
         {
             public ushort HttpApiMajorVersion;
@@ -144,16 +145,16 @@ namespace Microsoft.Web.Administration
                 HttpApiMinorVersion = minorVersion;
             }
         }
-        [StructLayout(LayoutKind.Sequential)]
 
+        [StructLayout(LayoutKind.Sequential)]
         private struct HTTP_SERVICE_CONFIG_SSL_QUERY
         {
             public HTTP_SERVICE_CONFIG_QUERY_TYPE QueryDesc;
             public HTTP_SERVICE_CONFIG_SSL_KEY KeyDesc;
             public uint dwToken;
         }
-        [StructLayout(LayoutKind.Sequential)]
 
+        [StructLayout(LayoutKind.Sequential)]
         private struct HTTP_SERVICE_CONFIG_SSL_SNI_QUERY
         {
             public HTTP_SERVICE_CONFIG_QUERY_TYPE QueryDesc;
@@ -161,12 +162,38 @@ namespace Microsoft.Web.Administration
             public uint dwToken;
         }
 
-
         private enum HTTP_SERVICE_CONFIG_QUERY_TYPE
         {
             HttpServiceConfigQueryExact = 0,
             HttpServiceConfigQueryNext,
             HttpServiceConfigQueryMax
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct HTTP_SERVICE_CONFIG_URLACL_QUERY
+        {
+            public HTTP_SERVICE_CONFIG_QUERY_TYPE QueryDesc;
+            public HTTP_SERVICE_CONFIG_URLACL_KEY KeyDesc;
+            public uint dwToken;
+        }
+
+        private struct HTTP_SERVICE_CONFIG_URLACL_KEY
+        {
+            [MarshalAs(UnmanagedType.LPWStr)]
+            public string pUrlPrefix;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct HTTP_SERVICE_CONFIG_URLACL_SET
+        {
+            public HTTP_SERVICE_CONFIG_URLACL_KEY KeyDesc;
+            public HTTP_SERVICE_CONFIG_URLACL_PARAM ParamDesc;
+        }
+
+        private struct HTTP_SERVICE_CONFIG_URLACL_PARAM
+        {
+            [MarshalAs(UnmanagedType.LPWStr)]
+            public string pStringSecurityDescriptor;
         }
 
         #endregion
@@ -731,7 +758,6 @@ namespace Microsoft.Web.Administration
             });
         }
 
-
         public static SslSniInfo[] QuerySslSniInfo()
         {
             var result = new List<SslSniInfo>();
@@ -814,6 +840,102 @@ namespace Microsoft.Web.Administration
                                         StoreName = storeName,
                                         Host = host,
                                         Port = ipPort.Port
+                                    };
+                                    result.Add(resultItem);
+                                    token++;
+                                }
+                                finally
+                                {
+                                    Marshal.FreeCoTaskMem(pOutputConfigInfo);
+                                }
+                            }
+                            else
+                            {
+                                ThrowWin32ExceptionIfError(retVal);
+                            }
+                        }
+                        finally
+                        {
+                            Marshal.FreeCoTaskMem(pInputConfigInfo);
+                        }
+                    } while (NOERROR == retVal);
+                });
+
+            return result.ToArray();
+        }
+
+        public class HttpNamespaceAcl
+        {
+            public string UrlPrefix { get; set; }
+            public string SecurityDescriptor { get; set; }
+        }
+
+        public static HttpNamespaceAcl[] QueryHttpNamespaceAcls()
+        {
+            var result = new List<HttpNamespaceAcl>();
+
+            CallHttpApi(
+                delegate
+                {
+                    uint token = 0;
+
+                    uint retVal;
+                    do
+                    {
+                        HTTP_SERVICE_CONFIG_URLACL_QUERY inputConfigInfoQuery =
+                            new HTTP_SERVICE_CONFIG_URLACL_QUERY
+                            {
+                                QueryDesc = HTTP_SERVICE_CONFIG_QUERY_TYPE.HttpServiceConfigQueryNext,
+                                dwToken = token
+                            };
+
+                        IntPtr pInputConfigInfo =
+                            Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(HTTP_SERVICE_CONFIG_URLACL_QUERY)));
+                        Marshal.StructureToPtr(inputConfigInfoQuery, pInputConfigInfo, false);
+
+                        IntPtr pOutputConfigInfo = IntPtr.Zero;
+                        int returnLength = 0;
+
+                        const HTTP_SERVICE_CONFIG_ID queryType = HTTP_SERVICE_CONFIG_ID.HttpServiceConfigUrlAclInfo;
+
+                        try
+                        {
+                            int inputConfigInfoSize = Marshal.SizeOf(inputConfigInfoQuery);
+                            retVal = HttpQueryServiceConfiguration(IntPtr.Zero,
+                                                                    queryType,
+                                                                    pInputConfigInfo,
+                                                                    inputConfigInfoSize,
+                                                                    pOutputConfigInfo,
+                                                                    returnLength,
+                                                                    out returnLength,
+                                                                    IntPtr.Zero);
+                            if (ERROR_NO_MORE_ITEMS == retVal)
+                                break;
+                            if (ERROR_INSUFFICIENT_BUFFER == retVal) // ERROR_INSUFFICIENT_BUFFER = 122
+                            {
+                                pOutputConfigInfo = Marshal.AllocCoTaskMem(returnLength);
+
+                                try
+                                {
+                                    retVal = HttpQueryServiceConfiguration(
+                                        IntPtr.Zero,
+                                        queryType,
+                                        pInputConfigInfo,
+                                        inputConfigInfoSize,
+                                        pOutputConfigInfo,
+                                        returnLength,
+                                        out returnLength,
+                                        IntPtr.Zero);
+                                    ThrowWin32ExceptionIfError(retVal);
+
+                                    var outputConfigInfo =
+                                        (HTTP_SERVICE_CONFIG_URLACL_SET)
+                                        Marshal.PtrToStructure(pOutputConfigInfo, typeof(HTTP_SERVICE_CONFIG_URLACL_SET));
+
+                                    var resultItem = new HttpNamespaceAcl
+                                    {
+                                        UrlPrefix = outputConfigInfo.KeyDesc.pUrlPrefix,
+                                        SecurityDescriptor = outputConfigInfo.ParamDesc.pStringSecurityDescriptor
                                     };
                                     result.Add(resultItem);
                                     token++;
