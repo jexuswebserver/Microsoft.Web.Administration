@@ -88,9 +88,6 @@
     <Compile Include="..\JexusManager\BindingExtensions.cs">
       <Link>BindingExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\JexusManager\CertificateInfo.cs">
-      <Link>CertificateInfo.cs</Link>
-    </Compile>
     <Compile Include="ExceptionTestCases.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerManagerTestFixture.cs" />

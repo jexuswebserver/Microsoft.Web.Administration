@@ -82,9 +82,6 @@
     <Compile Include="..\JexusManager\BindingExtensions.cs">
       <Link>BindingExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\JexusManager\CertificateInfo.cs">
-      <Link>CertificateInfo.cs</Link>
-    </Compile>
     <Compile Include="..\Microsoft.Web.Administration\NativeMethods.cs">
       <Link>NativeMethods.cs</Link>
     </Compile>
