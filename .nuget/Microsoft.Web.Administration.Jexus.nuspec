@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
-    <version>11.0.0-beta</version>
+    <version>11.0.0-beta2</version>
     <authors>Lex Li</authors>
     <owners>Lex Li</owners>
     <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
@@ -12,6 +12,7 @@
     </frameworkAssemblies>
     <dependencies>
       <dependency id="Microsoft.AspNet.WebApi.Client" version="5.2.3" />
+	  <dependency id="Newtonsoft.Json" version="9.0.1" />
     </dependencies>
     <id>Microsoft.Web.Administration.Jexus</id>
     <title>Microsoft.Web.Administration for Jexus Manager</title>
@@ -21,7 +22,9 @@
     <releaseNotes>
 Feb 9, 2016: 11.0 Beta 1
 Initial public release as open source.
-</releaseNotes>
+
+Aug 14, 2016: 11.0 Beta 2
+Revised a few APIs.</releaseNotes>
     <copyright>(C) 2014-2016 Lex Li</copyright>
     <language>en-US</language>
     <tags>iis</tags>
