@@ -130,37 +130,7 @@ namespace Microsoft.Web.Administration
 
         private async Task<bool> GetStateAsync()
         {
-            if (Parent.Parent.Mode != WorkingMode.Iis)
-            {
-                return true;
-            }
-
-#if !__MonoCS__
-            using (PowerShell PowerShellInstance = PowerShell.Create())
-            {
-                // use "AddScript" to add the contents of a script file to the end of the execution pipeline.
-                // use "AddCommand" to add individual commands/cmdlets to the end of the execution pipeline.
-                PowerShellInstance.AddScript("param($param1) [Reflection.Assembly]::LoadFrom('C:\\Windows\\system32\\inetsrv\\Microsoft.Web.Administration.dll'); Get-IISAppPool -Name \"$param1\"");
-
-                // use "AddParameter" to add a single parameter to the last command/script on the pipeline.
-                PowerShellInstance.AddParameter("param1", this.Name);
-
-                Collection<PSObject> PSOutput = PowerShellInstance.Invoke();
-
-                // check the other output streams (for example, the error stream)
-                if (PowerShellInstance.Streams.Error.Count > 0)
-                {
-                    // error records were written to the error stream.
-                    // do something with the items found.
-                    return false;
-                }
-
-                dynamic site = PSOutput[1];
-                return site.State?.ToString() == "Started";
-            }
-#else
-            return false;
-#endif
+            return await Parent.Parent.GetPoolStateAsync(this);
         }
 
         public WorkerProcessCollection WorkerProcesses

@@ -106,10 +106,15 @@ namespace Microsoft.Web.Administration
                 return _state.Value;
             }
 
-            private set
+            internal set
             {
                 _state = value;
             }
+        }
+
+        internal string CommandLine
+        {
+            get { return string.Format(command, FileContext.FileName, Id); }
         }
 
         public SiteTraceFailedRequestsLogging TraceFailedRequestsLogging
@@ -146,61 +151,8 @@ namespace Microsoft.Web.Administration
         public async Task<ObjectState> StartAsync()
         {
             State = ObjectState.Starting;
-            if (Server.Mode == WorkingMode.IisExpress)
-            {
-                var name = Applications[0].ApplicationPoolName;
-                var pool = Server.ApplicationPools.FirstOrDefault(item => item.Name == name);
-                var fileName =
-                    Path.Combine(
-                        Environment.GetFolderPath(
-                            pool != null && pool.Enable32BitAppOnWin64
-                                ? Environment.SpecialFolder.ProgramFilesX86
-                                : Environment.SpecialFolder.ProgramFiles),
-                        "IIS Express",
-                        "iisexpress.exe");
-                if (!File.Exists(fileName))
-                {
-                    fileName = Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
-                        "IIS Express",
-                        "iisexpress.exe");
-                }
-
-                var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = fileName,
-                        Arguments = string.Format(command, this.FileContext.FileName, Id),
-                        WindowStyle = ProcessWindowStyle.Hidden,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        RedirectStandardOutput = true
-                    }
-                };
-                try
-                {
-                    process.Start();
-                    process.WaitForExit(5000);
-                    if (process.HasExited)
-                    {
-                        throw new InvalidOperationException("process terminated");
-                    }
-
-                    return ObjectState.Started;
-                }
-                catch (Exception ex)
-                {
-                    throw new COMException(
-                        string.Format("cannot start site: {0}, {1}", ex.Message, process.StandardOutput.ReadToEnd()));
-                }
-                finally
-                {
-                    State = process.HasExited ? ObjectState.Stopped : ObjectState.Started;
-                }
-            }
-
-            return ObjectState.Unknown;
+            await Server.StartAsync(this);
+            return State;
         }
 
         public ObjectState Stop()
@@ -212,21 +164,8 @@ namespace Microsoft.Web.Administration
         public async Task<ObjectState> StopAsync()
         {
             State = ObjectState.Stopping;
-            if (Server.Mode == WorkingMode.IisExpress)
-            {
-                var items = Process.GetProcessesByName("iisexpress");
-                var found = items.Where(item =>
-                    item.GetCommandLine().EndsWith(string.Format(command, this.FileContext.FileName, Id), StringComparison.Ordinal));
-                foreach (var item in found)
-                {
-                    item.Kill();
-                    item.WaitForExit();
-                }
-
-                return State = ObjectState.Stopped;
-            }
-
-            return ObjectState.Unknown;
+            await Server.StopAsync(this);
+            return State;
         }
 
         public override string ToString()
@@ -274,45 +213,7 @@ namespace Microsoft.Web.Administration
 
         internal async Task<bool> GetStateAsync()
         {
-            if (Server.Mode == WorkingMode.IisExpress)
-            {
-                var items = Process.GetProcessesByName("iisexpress");
-                var found = items.Where(item =>
-                    item.GetCommandLine().EndsWith(string.Format(command, FileContext.FileName, Id), StringComparison.Ordinal));
-                return found.Any();
-            }
-
-            if (this.Server.Mode == WorkingMode.Iis)
-            {
-#if !__MonoCS__
-                using (PowerShell PowerShellInstance = PowerShell.Create())
-                {
-                    // use "AddScript" to add the contents of a script file to the end of the execution pipeline.
-                    // use "AddCommand" to add individual commands/cmdlets to the end of the execution pipeline.
-                    PowerShellInstance.AddScript("param($param1) [Reflection.Assembly]::LoadFrom('C:\\Windows\\system32\\inetsrv\\Microsoft.Web.Administration.dll'); Get-IISsite -Name \"$param1\"");
-
-                    // use "AddParameter" to add a single parameter to the last command/script on the pipeline.
-                    PowerShellInstance.AddParameter("param1", this.Name);
-
-                    Collection<PSObject> PSOutput = PowerShellInstance.Invoke();
-
-                    // check the other output streams (for example, the error stream)
-                    if (PowerShellInstance.Streams.Error.Count > 0)
-                    {
-                        // error records were written to the error stream.
-                        // do something with the items found.
-                        return false;
-                    }
-
-                    dynamic site = PSOutput[1];
-                    return site.State?.ToString() == "Started";
-                }
-#else
-                return false;
-#endif
-            }
-
-            return false;
+            return await Server.GetSiteStateAsync(this);
         }
 
         internal async Task RemoveApplicationAsync(Application application)

@@ -95,20 +95,10 @@ namespace Microsoft.Web.Administration
                 }
                 else
                 {
-                    var physicalPath = this.Server.Mode == WorkingMode.Jexus
-                                       ? System.IO.Path.Combine(
-                                           this.Server.CacheFolder,
-                                           root.Replace(
-                                               '/',
-                                               '_'))
-                                       : root;
+                    var physicalPath = Server.GetPhysicalPath(root);
                     var siteFile = System.IO.Path.Combine(physicalPath,
                         "web.config").ExpandIisExpressEnvironmentVariables();
-
-                    if (this.Server.Mode == WorkingMode.Jexus)
-                    {
-                        System.IO.File.Delete(siteFile);
-                    }
+                    Server.CleanSiteFile(siteFile);
 
                     // TODO: test ACL to set ReadOnly.
                     var site = new Configuration(new FileContext(Server, siteFile, server, Site.Name, false, false, this.Server.ReadOnly));
@@ -222,31 +212,26 @@ namespace Microsoft.Web.Administration
 
         internal async Task<ApplicationCollection> RemoveAsync()
         {
-            if (Server.Mode != WorkingMode.Jexus)
+            if (Path == RootPath)
             {
-                if (Path == RootPath)
-                {
-                    throw new InvalidOperationException("Root application cannot be removed. Please remove the site.");
-                }
-
-                var newApps = new ApplicationCollection(Site);
-                foreach (Application item in Parent)
-                {
-                    if (item == this)
-                    {
-                        item.Delete();
-                        continue;
-                    }
-
-                    item.Parent = newApps;
-                    newApps.Add(item);
-                }
-
-                newApps.Parent.Applications = newApps;
-                return newApps;
+                throw new InvalidOperationException("Root application cannot be removed. Please remove the site.");
             }
 
-            return null;
+            var newApps = new ApplicationCollection(Site);
+            foreach (Application item in Parent)
+            {
+                if (item == this)
+                {
+                    item.Delete();
+                    continue;
+                }
+
+                item.Parent = newApps;
+                newApps.Add(item);
+            }
+
+            newApps.Parent.Applications = newApps;
+            return newApps;
         }
 
         internal string ToFileName()

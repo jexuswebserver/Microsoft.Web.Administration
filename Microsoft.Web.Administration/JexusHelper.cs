@@ -17,17 +17,21 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Microsoft.Web.Administration
 {
-    public static class JexusHelper
+    public partial class JexusServerManager
     {
         internal static readonly Version MinimumServerVersion = new Version("1.0.000530.00");
 
         private static string s_protocol = "https";
-        private static Dictionary<ServerManager, string> _keyCache = new Dictionary<ServerManager, string>();
-        private static Dictionary<ServerManager, string> _certificateCache = new Dictionary<ServerManager, string>();
+        private string _keyCache;
+        private string _certificateCache;
 
-        public static async Task<string> SaveKeyAsync(this ServerManager server, string key)
+        internal string LogFolder { get; set; }
+
+        internal string Credentials { get; set; }
+
+        public async Task<string> SaveKeyAsync(string key)
         {
-            using (var client = server.GetClient())
+            using (var client = GetClient())
             {
                 HttpResponseMessage response = await client.PostAsJsonAsync("api/server/key/save", key);
                 if (response.IsSuccessStatusCode)
@@ -40,9 +44,9 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static async Task<string> SaveCertificateAsync(this ServerManager server, string text)
+        public async Task<string> SaveCertificateAsync(string text)
         {
-            using (var client = server.GetClient())
+            using (var client = GetClient())
             {
                 HttpResponseMessage response = await client.PostAsJsonAsync("api/server/cert/save", text);
                 if (response.IsSuccessStatusCode)
@@ -55,16 +59,11 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static async Task<X509Certificate2> GetCertificateAsync(this ServerManager server)
+        public async Task<X509Certificate2> GetCertificateAsync()
         {
-            if (!_certificateCache.ContainsKey(server))
+            using (var client = GetClient())
             {
-                return null;
-            }
-
-            using (var client = server.GetClient())
-            {
-                HttpResponseMessage response = await client.PostAsJsonAsync("api/server/cert", _certificateCache[server]);
+                HttpResponseMessage response = await client.PostAsJsonAsync("api/server/cert", _certificateCache);
                 if (response.IsSuccessStatusCode)
                 {
                     var result = (X509Certificate2)await response.Content.ReadAsAsync(typeof(X509Certificate2));
@@ -75,30 +74,30 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static void SetCertificate(this ServerManager server, string certificate)
+        public void SetCertificate(string certificate)
         {
-            _certificateCache[server] = certificate;
+            _certificateCache = certificate;
         }
 
-        public static void SetKeyFile(this ServerManager server, string key)
+        public void SetKeyFile(string key)
         {
-            _keyCache[server] = key;
+            _keyCache = key;
         }
 
-        internal static HttpClient GetClient(this ServerManager server)
+        internal HttpClient GetClient()
         {
             var client = new HttpClient();
-            client.BaseAddress = new Uri(string.Format("{0}://{1}/", s_protocol, server.HostName));
+            client.BaseAddress = new Uri(string.Format("{0}://{1}/", s_protocol, HostName));
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Add("X-HTTP-Authorization", server.Credentials);
+            client.DefaultRequestHeaders.Add("X-HTTP-Authorization", Credentials);
             client.DefaultRequestHeaders.Add("Time", DateTime.UtcNow.ToString(CultureInfo.InvariantCulture));
             return client;
         }
 
-        public static async Task<Version> GetVersionAsync(this ServerManager server)
+        public async Task<Version> GetVersionAsync()
         {
-            using (var client = server.GetClient())
+            using (var client = GetClient())
             {
                 HttpResponseMessage response = await client.GetAsync("api/server/version");
                 if (response.IsSuccessStatusCode)
@@ -111,9 +110,9 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static async Task<string> HelloAsync(this ServerManager server)
+        public async Task<string> HelloAsync()
         {
-            using (var client = server.GetClient())
+            using (var client = GetClient())
             {
                 HttpResponseMessage response = await client.PostAsJsonAsync("api/server/hello", Environment.MachineName);
                 if (response.IsSuccessStatusCode)
@@ -126,9 +125,9 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static async Task<string> ByeAsync(this ServerManager server)
+        public async Task<string> ByeAsync()
         {
-            using (var client = server.GetClient())
+            using (var client = GetClient())
             {
                 HttpResponseMessage response = await client.PostAsJsonAsync("api/server/bye", Environment.MachineName);
                 if (response.IsSuccessStatusCode)
@@ -141,9 +140,9 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static async Task<bool> LocalhostTestAsync(this ServerManager server, string path, string random)
+        public async Task<bool> LocalhostTestAsync(string path, string random)
         {
-            using (var client = server.GetClient())
+            using (var client = GetClient())
             {
                 HttpResponseMessage response = await client.PostAsJsonAsync("api/server/test", path);
                 if (response.IsSuccessStatusCode)
@@ -156,14 +155,9 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static async Task<bool> VerifyAsync(this ServerManager server, string path)
+        internal override async Task<bool> VerifyAsync(string path)
         {
-            if (server.Mode != WorkingMode.Jexus)
-            {
-                return Directory.Exists(path.ExpandIisExpressEnvironmentVariables());
-            }
-
-            using (var client = server.GetClient())
+            using (var client = GetClient())
             {
                 HttpResponseMessage response = await client.PostAsJsonAsync("api/site/verify", path);
                 if (response.IsSuccessStatusCode)
@@ -176,10 +170,10 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static async Task LoadAsync(this ServerManager server)
+        public async Task LoadAsync()
         {
             SortedDictionary<string, List<string>> variables = null;
-            if (server.Credentials == null)
+            if (Credentials == null)
             {
                 var lines = File.ReadAllLines("jws.conf");
                 variables = new SortedDictionary<string, List<string>>();
@@ -207,7 +201,7 @@ namespace Microsoft.Web.Administration
             }
             else
             {
-                using (var client = server.GetClient())
+                using (var client = GetClient())
                 {
                     HttpResponseMessage response = await client.GetAsync("api/server/");
                     if (response.IsSuccessStatusCode)
@@ -217,27 +211,27 @@ namespace Microsoft.Web.Administration
                 }
             }
 
-            var newPool = new ApplicationPool(null, server.ApplicationPools);
+            var newPool = new ApplicationPool(null, ApplicationPools);
             newPool.Name = "DefaultAppPool";
             newPool.ManagedRuntimeVersion = variables.Load(new List<string> { "v2.0" }, "runtime")[0];
             newPool.ProcessModel.MaxProcesses = long.Parse(variables.Load(new List<string> { "1" }, "httpd.processes")[0]);
             newPool.ProcessModel.UserName = variables.Load(new List<string> { string.Empty }, "httpd.user")[0];
             newPool.ProcessModel.IdentityType = ProcessModelIdentityType.SpecificUser;
-            server.ApplicationPools.Add(newPool);
+            ApplicationPools.Add(newPool);
 
-            server.SiteFolder = variables.Load(new List<string> { "siteconf" }, "siteconfigdir")[0];
-            server.LogFolder = variables.Load(new List<string> { "log" }, "sitelogdir")[0];
-            _certificateCache.Add(server, variables.Load(new List<string> { string.Empty }, "certificatefile")[0]);
-            _keyCache.Add(server, variables.Load(new List<string> { string.Empty }, "certificatekeyfile")[0]);
+            SiteFolder = variables.Load(new List<string> { "siteconf" }, "siteconfigdir")[0];
+            LogFolder = variables.Load(new List<string> { "log" }, "sitelogdir")[0];
+            _certificateCache = variables.Load(new List<string> { string.Empty }, "certificatefile")[0];
+            _keyCache = variables.Load(new List<string> { string.Empty }, "certificatekeyfile")[0];
 
             IEnumerable<string> sites = null;
-            if (server.Credentials == null)
+            if (Credentials == null)
             {
-                sites = Directory.GetFiles(server.SiteFolder).Where(name => !name.Contains("_"));
+                sites = Directory.GetFiles(SiteFolder).Where(name => !name.Contains("_"));
             }
             else
             {
-                using (var client = server.GetClient())
+                using (var client = GetClient())
                 {
                     HttpResponseMessage response = await client.GetAsync("api/site/");
                     if (response.IsSuccessStatusCode)
@@ -251,33 +245,33 @@ namespace Microsoft.Web.Administration
             Debug.Assert(sites != null, "sites != null");
             foreach (var file in sites)
             {
-                var site = server.Credentials == null
-                               ? new Site(server.Sites) { Name = Path.GetFileName(file), Id = count }
-                               : new Site(server.Sites) { Name = file, Id = count };
-                server.Sites.Add(site);
-                count = await site.LoadAsync(count, file, server.SiteFolder);
+                var site = Credentials == null
+                               ? new Site(Sites) { Name = Path.GetFileName(file), Id = count }
+                               : new Site(Sites) { Name = file, Id = count };
+                Sites.Add(site);
+                count = await LoadAsync(site, count, file, SiteFolder);
             }
 
-            server.Extra = variables;
+            Extra = variables;
         }
 
-        public static async Task SaveAsync(this ServerManager server)
+        public async Task SaveAsync()
         {
             var variables = new SortedDictionary<string, List<string>>();
-            foreach (var item in server.Extra)
+            foreach (var item in Extra)
             {
                 variables.Add(item.Key, item.Value);
             }
 
-            var pool = server.ApplicationPools[0];
+            var pool = ApplicationPools[0];
             variables.Add("runtime", new List<string> { pool.ManagedRuntimeVersion });
             variables.Add("httpd.processes", new List<string> { pool.ProcessModel.MaxProcesses.ToString() });
             variables.Add("httpd.user", new List<string> { pool.ProcessModel.UserName });
-            variables.Add("siteconfigdir", new List<string> { server.SiteFolder });
-            variables.Add("sitelogdir", new List<string> { server.LogFolder });
-            variables.Add("certificatefile", new List<string> { _certificateCache[server] });
-            variables.Add("certificatekeyfile", new List<string> { _keyCache[server] });
-            if (string.IsNullOrEmpty(server.HostName))
+            variables.Add("siteconfigdir", new List<string> { SiteFolder });
+            variables.Add("sitelogdir", new List<string> { LogFolder });
+            variables.Add("certificatefile", new List<string> { _certificateCache });
+            variables.Add("certificatekeyfile", new List<string> { _keyCache });
+            if (string.IsNullOrEmpty(HostName))
             {
                 var lines = new List<string>();
                 foreach (var item in variables)
@@ -292,7 +286,7 @@ namespace Microsoft.Web.Administration
             }
             else
             {
-                using (var client = server.GetClient())
+                using (var client = GetClient())
                 {
                     HttpResponseMessage response = await client.PutAsJsonAsync("api/server/", variables);
                     var content = await response.Content.ReadAsStringAsync();
@@ -303,9 +297,9 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static async Task<bool> GetStatusAsync(this ServerManager server)
+        public async Task<bool> GetStatusAsync()
         {
-            using (var client = server.GetClient())
+            using (var client = GetClient())
             {
                 HttpResponseMessage response = await client.GetAsync("api/server/state");
                 if (response.IsSuccessStatusCode)
@@ -318,9 +312,9 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static async Task<bool> StopAsync(this ServerManager server)
+        public async Task<bool> StopAsync()
         {
-            using (var client = server.GetClient())
+            using (var client = GetClient())
             {
                 HttpResponseMessage response = await client.GetAsync("api/server/stop");
                 if (response.IsSuccessStatusCode)
@@ -333,9 +327,9 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static async Task<bool> StartAsync(this ServerManager server)
+        public async Task<bool> StartAsync()
         {
-            using (var client = server.GetClient())
+            using (var client = GetClient())
             {
                 HttpResponseMessage response = await client.GetAsync("api/server/start");
                 if (response.IsSuccessStatusCode)
@@ -348,10 +342,10 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public static async Task<long> LoadAsync(this Site site, long count, string file, string siteFolder)
+        public async Task<long> LoadAsync(Site site, long count, string file, string siteFolder)
         {
             SortedDictionary<string, List<string>> siteVariables = null;
-            if (site.Parent.Parent.Credentials == null)
+            if (Credentials == null)
             {
                 var rows = File.ReadAllLines(file);
                 siteVariables = new SortedDictionary<string, List<string>>();
@@ -378,7 +372,7 @@ namespace Microsoft.Web.Administration
             }
             else
             {
-                using (var client = site.Server.GetClient())
+                using (var client = GetClient())
                 {
                     HttpResponseMessage response = await client.GetAsync(string.Format("api/site/{0}", file));
                     if (response.IsSuccessStatusCode)
@@ -400,7 +394,7 @@ namespace Microsoft.Web.Administration
 
             if (useHttps)
             {
-                var cert = await site.Server.GetCertificateAsync();
+                var cert = await GetCertificateAsync();
                 binding.CertificateHash = cert.GetCertHash();
             }
             else
@@ -414,17 +408,17 @@ namespace Microsoft.Web.Administration
             app.Name = string.Empty;
             app.ApplicationPoolName = "DefaultAppPool";
             site.Applications.Add(app);
-            await app.LoadAsync(null, null, siteVariables);
+            await LoadAsync(app, null, null, siteVariables);
 
             IEnumerable<string> appNames = null;
-            if (site.Server.Credentials == null)
+            if (Credentials == null)
             {
                 appNames = Directory.GetFiles(siteFolder);
                 appNames = appNames.Where(name => name.StartsWith(file + "_", StringComparison.Ordinal));
             }
             else
             {
-                using (var client = site.Server.GetClient())
+                using (var client = GetClient())
                 {
                     HttpResponseMessage response = await client.GetAsync(string.Format("api/app/{0}", site.Name));
                     if (response.IsSuccessStatusCode)
@@ -444,17 +438,17 @@ namespace Microsoft.Web.Administration
                 application.Path = appName.ToPath(out applicationName);
                 application.Name = applicationName;
                 site.Applications.Add(application);
-                await application.LoadAsync(file, appName, null);
+                await LoadAsync(application, file, appName, null);
             }
 
             return count;
         }
 
-        public static async Task LoadAsync(this Application application, string file, string appName, SortedDictionary<string, List<string>> variables)
+        public async Task LoadAsync(Application application, string file, string appName, SortedDictionary<string, List<string>> variables)
         {
             if (variables == null)
             {
-                if (application.Server.Credentials == null)
+                if (Credentials == null)
                 {
                     var rows = File.ReadAllLines(file);
                     variables = new SortedDictionary<string, List<string>>();
@@ -481,7 +475,7 @@ namespace Microsoft.Web.Administration
                 }
                 else
                 {
-                    using (var client = application.Server.GetClient())
+                    using (var client = GetClient())
                     {
                         HttpResponseMessage response = await client.GetAsync(string.Format("api/app/get/{0}", appName));
                         if (response.IsSuccessStatusCode)
@@ -647,7 +641,7 @@ namespace Microsoft.Web.Administration
             application.Extra = variables;
         }
 
-        public static async Task SaveAsync(this Application application)
+        public async Task SaveAsync(Application application)
         {
             var variables = new SortedDictionary<string, List<string>>();
             foreach (var item in application.Extra)
@@ -772,7 +766,7 @@ namespace Microsoft.Web.Administration
             }
             else
             {
-                using (var client = application.Server.GetClient())
+                using (var client = GetClient())
                 {
                     HttpResponseMessage response = await client.PutAsJsonAsync(string.Format("api/site/{0}", application.ToFileName()), variables);
                     if (response.IsSuccessStatusCode)

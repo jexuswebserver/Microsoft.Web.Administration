@@ -6,8 +6,9 @@ namespace Microsoft.Web.Administration
 {
     public enum WorkingMode
     {
-        Iis = 0,
-        IisExpress = 1,
-        Jexus = 2
+        NotSupported = 0,
+        Iis = 1,
+        IisExpress = 2,
+        Jexus = 3
     }
 }

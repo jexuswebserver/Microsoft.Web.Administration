@@ -36,8 +36,7 @@ namespace Tests
             TestHelper.FixPhysicalPathMono(Current);
             File.Delete(TestHelper.GetSiteConfig(directoryName));
 
-            var server = new ServerManager(Current);
-            server.Mode = WorkingMode.IisExpress;
+            var server = new IisExpressServerManager(Current);
             TestCases.TestIisExpressMissingWebsiteConfig(server);
 
             {
@@ -127,7 +126,7 @@ namespace Tests
             TestHelper.FixPhysicalPathMono(Current);
             TestHelper.CopySiteConfig(directoryName, "original.config");
 
-            var server = new ServerManager(Current) { Mode = WorkingMode.IisExpress };
+            var server = new IisExpressServerManager(Current);
             TestCases.TestIisExpress(server);
 
             {

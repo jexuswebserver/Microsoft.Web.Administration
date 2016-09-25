@@ -30,8 +30,11 @@ namespace Tests
             {
                 return;
             }
-
+#if IIS
             var server = new ServerManager(Path.Combine(directoryName, Current));
+#else
+            var server = new IisExpressServerManager(Path.Combine(directoryName, Current));
+#endif
             var config = server.GetApplicationHostConfiguration();
             var section = config.GetSection("configProtectedData");
             Assert.Equal("RsaProtectedConfigurationProvider", section["defaultProvider"]);
@@ -54,7 +57,11 @@ namespace Tests
             var file = Path.Combine(directoryName, Original);
             File.Delete(file);
 
+#if IIS
             var server = new ServerManager(file);
+#else
+            var server = new IisExpressServerManager(file);
+#endif
             var exception = Assert.Throws<FileNotFoundException>(
                 () =>
                     {
@@ -82,7 +89,11 @@ namespace Tests
             File.Copy(Original, Current, true);
             //TestHelper.FixPhysicalPathMono(Current);
 
+#if IIS
             var server = new ServerManager(Current);
+#else
+            var server = new IisExpressServerManager(Current);
+#endif
             var exception = Assert.Throws<COMException>(
                 () =>
                     {
@@ -112,7 +123,11 @@ namespace Tests
             File.Copy(Original, Current, true);
             TestHelper.FixPhysicalPathMono(Current);
 
+#if IIS
             var server = new ServerManager(Current);
+#else
+            var server = new IisExpressServerManager(Current);
+#endif
             var exception = Assert.Throws<COMException>(
                 () =>
                     {
@@ -142,7 +157,11 @@ namespace Tests
             File.Copy(Original, Current, true);
             TestHelper.FixPhysicalPathMono(Current);
 
+#if IIS
             var server = new ServerManager(Current);
+#else
+            var server = new IisExpressServerManager(Current);
+#endif
             var exception = Assert.Throws<COMException>(
                 () =>
                     {
@@ -172,7 +191,11 @@ namespace Tests
             File.Copy(Original, Current, true);
             TestHelper.FixPhysicalPathMono(Current);
 
+#if IIS
             var server = new ServerManager(Current);
+#else
+            var server = new IisExpressServerManager(Current);
+#endif
             var exception = Assert.Throws<COMException>(
                 () =>
                     {
@@ -204,7 +227,11 @@ namespace Tests
 
             var message =
                 "The configuration object is read only, because it has been committed by a call to ServerManager.CommitChanges(). If write access is required, use ServerManager to get a new reference.";
+#if IIS
             var server = new ServerManager(true, Current);
+#else
+            var server = new IisExpressServerManager(true, Current);
+#endif
             var exception1 = Assert.Throws<InvalidOperationException>(
                 () =>
                     {
@@ -303,7 +330,11 @@ namespace Tests
             File.Copy(Original, Current, true);
             TestHelper.FixPhysicalPathMono(Current);
 
+#if IIS
             var server = new ServerManager(Current);
+#else
+            var server = new IisExpressServerManager(Current);
+#endif
             var config = server.Sites[0].Applications[0].GetWebConfiguration();
             var exception = Assert.Throws<FileLoadException>(
                 () =>
@@ -337,7 +368,11 @@ namespace Tests
             File.Copy(Original, Current, true);
             TestHelper.FixPhysicalPathMono(Current);
 
+#if IIS
             var server = new ServerManager(Current);
+#else
+            var server = new IisExpressServerManager(Current);
+#endif
             var config = server.Sites[0].Applications[0].GetWebConfiguration();
             var exception = Assert.Throws<COMException>(
                 () =>
@@ -349,7 +384,7 @@ namespace Tests
             var siteConfig = Path.Combine(directoryName, "WebSite1", "web.config");
 #if IIS
             Assert.Equal(string.Format("Filename: \\\\?\\{0}\r\nError: \r\n", siteConfig), exception.Message);
-#else 
+#else
             Assert.Equal(string.Format("Filename: \\\\?\\{0}\r\nLine number: 10\r\nError: Unrecognized element 'test'\r\n\r\n", siteConfig), exception.Message);
 #endif
         }
@@ -370,8 +405,11 @@ namespace Tests
             TestHelper.CopySiteConfig(directoryName, "original_duplicate_section.config");
             File.Copy(Original, Current, true);
             TestHelper.FixPhysicalPathMono(Current);
-
+#if IIS
             var server = new ServerManager(Current);
+#else
+            var server = new IisExpressServerManager(Current);
+#endif
             var config = server.Sites[0].Applications[0].GetWebConfiguration();
             var section =
                 config.GetSection("system.webServer/defaultDocument");
@@ -409,7 +447,11 @@ namespace Tests
             File.Copy(Original, Current, true);
             TestHelper.FixPhysicalPathMono(Current);
 
+#if IIS
             var server = new ServerManager(Current);
+#else
+            var server = new IisExpressServerManager(Current);
+#endif
             var site = server.Sites[0];
             var config = site.GetWebConfiguration();
             var exception = Assert.Throws<FileNotFoundException>(
@@ -441,7 +483,11 @@ namespace Tests
             File.Copy(Original, Current, true);
             TestHelper.FixPhysicalPathMono(Current);
 
+#if IIS
             var server = new ServerManager(Current);
+#else
+            var server = new IisExpressServerManager(Current);
+#endif
             var site = server.Sites[0];
             var config = site.GetWebConfiguration();
             var root = config.RootSectionGroup;
@@ -472,7 +518,11 @@ namespace Tests
             File.Copy(Original, Current, true);
             TestHelper.FixPhysicalPathMono(Current);
 
+#if IIS
             var server = new ServerManager(Current);
+#else
+            var server = new IisExpressServerManager(Current);
+#endif
             var site = server.Sites[0];
             var config = site.GetWebConfiguration();
 #if IIS
@@ -508,7 +558,11 @@ namespace Tests
             File.Copy(Original, Current, true);
             TestHelper.FixPhysicalPathMono(Current);
 
+#if IIS
             var server = new ServerManager(Current);
+#else
+            var server = new IisExpressServerManager(Current);
+#endif
             var site = server.Sites[0];
             var config = site.GetWebConfiguration();
             var root = config.RootSectionGroup;
@@ -539,7 +593,11 @@ namespace Tests
             File.Copy(Original, Current, true);
             TestHelper.FixPhysicalPathMono(Current);
 
+#if IIS
             var server = new ServerManager(Current);
+#else
+            var server = new IisExpressServerManager(Current);
+#endif
             {
                 var site = server.Sites[0];
                 Assert.Equal(@"%IIS_USER_HOME%\Logs", site.LogFile.Directory);

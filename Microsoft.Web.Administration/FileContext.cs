@@ -34,7 +34,6 @@ namespace Microsoft.Web.Administration
             this.AppHost = appHost;
             this.ReadOnly = readOnly;
             this.Locations = new List<Location>();
-            Mode = server.Mode;
             FileName = fileName;
             this.Location = location;
             Parent = parent;
@@ -260,7 +259,6 @@ namespace Microsoft.Web.Administration
         }
 
         private List<Location> Locations { get; }
-        private WorkingMode Mode { get; set; }
 
         private readonly Dictionary<string, SectionSchema> _sectionSchemas = new Dictionary<string, SectionSchema>();
         private XDocument _document;
@@ -302,88 +300,10 @@ namespace Microsoft.Web.Administration
 
         private void LoadSchemasFromMode()
         {
-            if (Mode == WorkingMode.Iis)
+            foreach (var file in _server.GetSchemaFiles())
             {
-                var directory = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.System),
-                    "inetsrv",
-                    "config",
-                    "schema");
-                if (Directory.Exists(directory))
-                {
-                    foreach (var file in Directory.GetFiles(directory))
-                    {
-                        var schemaDoc = XDocument.Load(file);
-                        LoadSchema(schemaDoc);
-                    }
-
-                    return;
-                }
-            }
-            else if (Mode == WorkingMode.IisExpress)
-            {
-                var directory = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
-                    "IIS Express",
-                    "config",
-                    "schema");
-                if (Directory.Exists(directory))
-                {
-                    foreach (var file in Directory.GetFiles(directory))
-                    {
-                        var schemaDoc = XDocument.Load(file);
-                        LoadSchema(schemaDoc);
-                    }
-
-                    return;
-                }
-
-                // IMPORTANT: for x86 IIS 7 Express
-                var x86 = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
-                    "IIS Express",
-                    "config",
-                    "schema");
-                if (Directory.Exists(x86))
-                {
-                    foreach (var file in Directory.GetFiles(x86))
-                    {
-                        var schemaDoc = XDocument.Load(file);
-                        LoadSchema(schemaDoc);
-                    }
-
-                    return;
-                }
-            }
-            else
-            {
-                var environment = Path.Combine(
-                    Environment.ExpandEnvironmentVariables("%JEXUS_CONFIG%"),
-                    "schema");
-                if (Directory.Exists(environment))
-                {
-                    foreach (var file in Directory.GetFiles(environment))
-                    {
-                        var schemaDoc = XDocument.Load(file);
-                        LoadSchema(schemaDoc);
-                    }
-
-                    return;
-                }
-            }
-
-            var local = Path.Combine(
-                Path.GetDirectoryName(typeof(FileContext).Assembly.Location),
-                "schema");
-            if (Directory.Exists(local))
-            {
-                foreach (var file in Directory.GetFiles(local))
-                {
-                    var schemaDoc = XDocument.Load(file);
-                    LoadSchema(schemaDoc);
-                }
-
-                return;
+                var schemaDoc = XDocument.Load(file);
+                LoadSchema(schemaDoc);
             }
         }
 

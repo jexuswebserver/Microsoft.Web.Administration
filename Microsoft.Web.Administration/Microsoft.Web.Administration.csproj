@@ -75,6 +75,7 @@
     <Compile Include="ApplicationPathValidator.cs" />
     <Compile Include="ApplicationPoolNameValidator.cs" />
     <Compile Include="AsyncHelper.cs" />
+    <Compile Include="IisExpressServerManager.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="ConfigurationAttributeSchemaExtensions.cs" />
     <Compile Include="DefaultEncryptionServiceProvider.cs" />
@@ -122,6 +123,7 @@
     <Compile Include="CustomLogFieldSourceType.cs" />
     <Compile Include="IdleTimeoutAction.cs" />
     <Compile Include="JexusHelper.cs" />
+    <Compile Include="JexusServerManager.cs" />
     <Compile Include="LoadBalancerCapabilities.cs" />
     <Compile Include="LogExtFileFlags.cs" />
     <Compile Include="LogFormat.cs" />
@@ -161,8 +163,9 @@
     <Compile Include="SectionGroup.cs" />
     <Compile Include="SectionGroupCollection.cs" />
     <Compile Include="SectionSchema.cs" />
-    <Compile Include="ServerManager.cs" />
+    <Compile Include="IisServerManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServerManager.cs" />
     <Compile Include="ServerManagerException.cs" />
     <Compile Include="Site.cs" />
     <Compile Include="SiteCollection.cs" />

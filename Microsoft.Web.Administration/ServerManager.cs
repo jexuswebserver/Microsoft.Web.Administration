@@ -1,17 +1,16 @@
-﻿// Copyright (c) Lex Li. All rights reserved.
-// 
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿﻿// Copyright (c) Lex Li. All rights reserved. 
+//  
+// Licensed under the MIT license. See LICENSE file in the project root for full license information. 
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.Web.Administration.Properties;
 
 namespace Microsoft.Web.Administration
 {
-    public class ServerManager
+    public abstract class ServerManager
     {
         private Configuration _applicationHost;
 
@@ -33,13 +32,9 @@ namespace Microsoft.Web.Administration
 
         internal ApplicationPoolCollection ApplicationPoolCollection;
 
-        internal string LogFolder { get; set; }
-
-        internal string HostName { get; }
+        internal string HostName { get; set; }
 
         internal string Name { get; set; }
-
-        internal string Credentials { get; set; }
 
         internal string Title
         {
@@ -51,7 +46,7 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        public WorkingMode Mode { get; set; } = WorkingMode.IisExpress;
+        public WorkingMode Mode { get; protected set; }
 
         public ServerManager()
             : this(null, true)
@@ -59,18 +54,18 @@ namespace Microsoft.Web.Administration
         }
 
         public ServerManager(string hostName, bool local)
-            : this(hostName, null)
-        {
-        }
-
-        internal ServerManager(string hostName, string credentials)
-            : this(hostName, credentials, false, null)
+            : this(hostName)
         {
         }
 
         public ServerManager(bool readOnly, string applicationHostConfigurationPath)
-            : this("localhost", null, readOnly, applicationHostConfigurationPath)
+            : this("localhost", readOnly, applicationHostConfigurationPath)
         {
+        }
+
+        internal virtual async Task<bool> VerifyAsync(string path)
+        {
+            return Directory.Exists(path.ExpandIisExpressEnvironmentVariables());
         }
 
         public ServerManager(string applicationHostConfigurationPath)
@@ -78,10 +73,9 @@ namespace Microsoft.Web.Administration
         {
         }
 
-        internal ServerManager(string hostName, string credentials, bool readOnly, string fileName)
+        internal ServerManager(string hostName, bool readOnly, string fileName)
         {
             HostName = hostName;
-            Credentials = credentials;
             ReadOnly = readOnly;
             FileName = fileName;
         }
@@ -94,6 +88,7 @@ namespace Microsoft.Web.Administration
             }
 
             this.Initialized = true;
+            PreInitialize();
             var machineConfig = Helper.IsRunningOnMono()
                 ? "/Library/Frameworks/Mono.framework/Versions/Current/etc/mono/4.5/machine.config"
                 : Path.Combine(
@@ -133,7 +128,6 @@ namespace Microsoft.Web.Administration
                         true,
                         true));
 
-            this.CreateCache();
             _applicationHost =
                 new Configuration(
                 new FileContext(this, this.FileName, web.FileContext, null, true, false, this.ReadOnly));
@@ -153,10 +147,29 @@ namespace Microsoft.Web.Administration
                 new VirtualDirectoryDefaults(siteSection.GetChildElement("virtualDirectoryDefaults"), siteSection);
             this.SiteCollection = new SiteCollection(siteSection, this);
 
-            if (this.Mode == WorkingMode.Jexus)
-            {
-                AsyncHelper.RunSync(this.LoadAsync);
-            }
+            PostInitialize();
+        }
+
+        internal virtual void CleanSiteFile(string file)
+        {
+        }
+
+        internal virtual string GetPhysicalPath(string root)
+        {
+            return root;
+        }
+
+        internal abstract Task StopAsync(Site site);
+        internal abstract Task StartAsync(Site site);
+
+        protected virtual void PreInitialize()
+        {
+        }
+
+        internal abstract Task<bool> GetPoolStateAsync(ApplicationPool pool);
+
+        protected virtual void PostInitialize()
+        {
         }
 
         private void LoadCache()
@@ -189,20 +202,13 @@ namespace Microsoft.Web.Administration
 
             Save();
 
-            if (this.Mode != WorkingMode.Jexus)
-            {
-                return;
-            }
+            await PostCommitChangesAsync();
+        }
 
-            foreach (Site site in Sites)
-            {
-                foreach (Application application in site.Applications)
-                {
-                    await application.SaveAsync();
-                }
-            }
-
-            await this.SaveAsync();
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        protected virtual async Task PostCommitChangesAsync()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        {
         }
 
         public void Save()
@@ -310,7 +316,7 @@ namespace Microsoft.Web.Administration
 
         internal bool IsLocalhost { get; set; }
 
-        internal bool ReadOnly { get; }
+        internal bool ReadOnly { get; set; }
 
         internal string FileName { get; set; }
 
@@ -323,9 +329,19 @@ namespace Microsoft.Web.Administration
             return null;
         }
 
+        internal abstract Task<bool> GetSiteStateAsync(Site site);
+
         public Configuration GetAdministrationConfiguration(WebConfigurationMap configMap, string configurationPath)
         {
             return null;
+        }
+
+        internal virtual IEnumerable<string> GetSchemaFiles()
+        {
+            var local = Path.Combine(
+                Path.GetDirectoryName(typeof(FileContext).Assembly.Location),
+                "schema");
+            return Directory.Exists(local) ? Directory.GetFiles(local) : Enumerable.Empty<string>();
         }
 
         public Configuration GetApplicationHostConfiguration()
@@ -365,9 +381,9 @@ namespace Microsoft.Web.Administration
             return null;
         }
 
-        public static ServerManager OpenRemote(string serverName)
+        public static IisServerManager OpenRemote(string serverName)
         {
-            return new ServerManager(serverName, false);
+            return new IisServerManager(serverName, false);
         }
 
         public void SetMetadata(string metadataType, object value)
@@ -392,29 +408,6 @@ namespace Microsoft.Web.Administration
             }
         }
 
-        private void CreateCache()
-        {
-            if (this.Mode != WorkingMode.Jexus)
-            {
-                return;
-            }
-
-            var name = this.HostName.Replace(':', '_');
-            CacheFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "Jexus Manager",
-                "cache",
-                name);
-            FileName = Path.Combine(CacheFolder, "applicationHost.config");
-            if (!Directory.Exists(CacheFolder))
-            {
-                Directory.CreateDirectory(CacheFolder);
-            }
-
-            File.WriteAllText(this.FileName, Resources.original);
-        }
-
-        internal string CacheFolder { get; set; }
         internal string Type { get; private set; }
     }
 }
