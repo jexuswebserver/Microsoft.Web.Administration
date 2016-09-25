@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
-    <version>11.0.0-beta3</version>
+    <version>11.0.0-beta4</version>
     <authors>Lex Li</authors>
     <owners>Lex Li</owners>
     <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
-    <projectUrl>http://jexus.lextudio.com</projectUrl>
+    <projectUrl>https://www.jexusmanager.com</projectUrl>
     <frameworkAssemblies>
       <frameworkAssembly assemblyName="System.Core" targetFramework="4.5" />
       <frameworkAssembly assemblyName="System" targetFramework="4.5" />
@@ -27,7 +27,11 @@ Aug 14, 2016: 11.0 Beta 2
 Revised a few APIs.
 
 Aug 14, 2016: 11.0 Beta 3
-Updated to match Jexus Manager.</releaseNotes>
+Updated to match Jexus Manager.
+
+Sept 25, 2016: 11.0 Beta 4
+Split ServerManager to multiple classes.
+    </releaseNotes>
     <copyright>(C) 2014-2016 Lex Li</copyright>
     <language>en-US</language>
     <tags>iis</tags>
