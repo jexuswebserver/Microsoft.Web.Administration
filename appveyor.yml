@@ -7,3 +7,6 @@ before_build:
 build:
   project: Microsoft.Web.Administration.sln
   verbosity: minimal
+test:
+  assemblies:
+    - '**\Tests.dll'
