@@ -8,5 +8,6 @@ for %%v in (2.0, 3.5, 4.0, 12.0, 14.0) do (
   )
 )
 
+call restore.bat
 call "%msBuildExe%" Microsoft.Web.Administration.sln /t:build /p:Configuration="Debug"
 @IF %ERRORLEVEL% NEQ 0 PAUSE
