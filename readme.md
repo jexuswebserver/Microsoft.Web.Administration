@@ -12,3 +12,7 @@ Following the announcement at Jiaodong Developer Conference 2015 that Jexus Mana
 the code base has been cleaned up and published to GitHub bit by bit.
 
 More information about the code will be published in the coming weeks.
+
+Build from Source
+-----------------
+Run all.bat to compile it at command line. It will restore the NuGet packages and fire MSBuild.
